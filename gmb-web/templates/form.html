@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+{% block title %}Generar Informe GMB | O2D{% endblock %}
+
+{% block head_extra %}
+<style>
+  /* Hero */
+  .hero {
+    margin-bottom: 40px;
+    position: relative;
+  }
+  .hero .kicker {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--purple);
+    margin-bottom: 14px;
+  }
+  .hero .lede { margin-top: 14px; }
+
+  /* Seccion con numeracion editorial */
+  .form-section {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 32px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+    position: relative;
+  }
+  .form-section::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 32px; right: 32px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--teal), transparent);
+    border-radius: 0 0 3px 3px;
+  }
+
+  /* Keywords */
+  .keywords-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+  .keyword-row {
+    display: grid;
+    grid-template-columns: 1.8fr 0.9fr 0.7fr auto auto;
+    gap: 10px;
+    align-items: center;
+    padding: 14px;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    transition: border-color 0.15s;
+  }
+  .keyword-row:focus-within {
+    border-color: var(--teal);
+  }
+  .keyword-row input[type="text"],
+  .keyword-row input[type="number"] {
+    padding: 9px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    background: white;
+    width: 100%;
+  }
+  .keyword-row input:focus {
+    outline: none;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 2px rgba(0, 196, 204, 0.15);
+  }
+  .kw-index {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    padding-right: 4px;
+  }
+
+  /* Checkbox custom */
+  .checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 6px;
+  }
+  .checkbox-wrapper input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--teal);
+    cursor: pointer;
+  }
+  .checkbox-wrapper label {
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+    user-select: none;
+    margin: 0;
+  }
+
+  .btn-remove {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 20px;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .btn-remove:hover {
+    background: #FEE;
+    color: var(--red);
+  }
+
+  .btn-add {
+    background: transparent;
+    border: 1.5px dashed var(--border);
+    color: var(--text-muted);
+    padding: 12px 20px;
+    border-radius: var(--radius);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.15s;
+  }
+  .btn-add:hover {
+    border-color: var(--teal);
+    color: var(--teal-dark);
+    background: rgba(0, 196, 204, 0.05);
+  }
+
+  .kw-counter {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 8px;
+  }
+  .kw-counter.warn { color: var(--orange); }
+
+  /* CTA final */
+  .submit-row {
+    text-align: center;
+    padding: 32px 0;
+  }
+  .submit-row .btn {
+    min-width: 280px;
+  }
+  .submit-hint {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 12px;
+  }
+
+  /* Responsive keywords */
+  @media (max-width: 700px) {
+    .keyword-row {
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .keyword-row > :nth-child(1) { grid-column: 1 / -1; }
+    .kw-index { display: none; }
+  }
+
+  /* Loading state */
+  .btn[data-loading="true"] {
+    opacity: 0.7;
+    cursor: wait;
+    pointer-events: none;
+  }
+  .btn[data-loading="true"] .btn-text::after {
+    content: "";
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-left: 10px;
+    border: 2px solid white;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="kicker">Generador de informes &mdash; v1.0</div>
+  <h1 class="display">Auditoria GMB,<br><em>en un PDF de marca.</em></h1>
+  <p class="lede">Introduce los datos del perfil que has analizado manualmente en Google Maps y obtendras un informe PDF listo para enviar al cliente.</p>
+</section>
+
+<form method="POST" action="{{ url_for('generate') }}" id="gmb-form">
+
+  <!-- Seccion 1: Cliente -->
+  <div class="form-section">
+    <h2 class="section"><span class="num">01</span> Datos del cliente</h2>
+    <div class="field">
+      <label for="business_name">Nombre del negocio</label>
+      <input type="text" id="business_name" name="business_name" required placeholder="Ej: Afitnity Training Box">
+    </div>
+    <div class="field">
+      <label for="address">Direccion completa</label>
+      <input type="text" id="address" name="address" required placeholder="Ej: C. la Honfria, 11, 37008 Salamanca">
+    </div>
+    <div class="grid-3">
+      <div class="field">
+        <label for="rating">Puntuacion <span class="hint">1.0 - 5.0</span></label>
+        <input type="text" id="rating" name="rating" required placeholder="4.7" inputmode="decimal">
+      </div>
+      <div class="field">
+        <label for="reviews">Numero de resenas</label>
+        <input type="number" id="reviews" name="reviews" required placeholder="47" min="0">
+      </div>
+      <div class="field">
+        <label for="category">Categoria principal</label>
+        <input type="text" id="category" name="category" required placeholder="Gimnasio">
+      </div>
+    </div>
+    <div class="field">
+      <label for="consultant">Tu nombre <span class="hint">firma del informe</span></label>
+      <input type="text" id="consultant" name="consultant" required placeholder="Alberto Diaz">
+    </div>
+  </div>
+
+  <!-- Seccion 2: Metricas -->
+  <div class="form-section">
+    <h2 class="section"><span class="num">02</span> Metricas del perfil</h2>
+    <div class="grid-2">
+      <div class="field">
+        <label for="visibility">Visibilidad global <span class="hint">en %</span></label>
+        <input type="number" id="visibility" name="visibility" required placeholder="32" min="0" max="100">
+      </div>
+      <div class="field">
+        <label for="avg_position">Posicion promedio</label>
+        <input type="number" id="avg_position" name="avg_position" required placeholder="13" min="1">
+      </div>
+    </div>
+  </div>
+
+  <!-- Seccion 3: Keywords -->
+  <div class="form-section">
+    <h2 class="section"><span class="num">03</span> Palabras clave <span class="hint" style="margin-left: auto; font-size: 12px;">maximo 20</span></h2>
+
+    <div class="keywords-list" id="keywords-list">
+      <!-- Las filas se inyectan con JS. Una fila inicial vacia. -->
+    </div>
+
+    <button type="button" class="btn-add" id="btn-add-kw">
+      + Anadir keyword
+    </button>
+
+    <div class="kw-counter" id="kw-counter">0 de 20 keywords</div>
+  </div>
+
+  <!-- Submit -->
+  <div class="submit-row">
+    <button type="submit" class="btn btn-primary btn-large" id="submit-btn">
+      <span class="btn-text">Generar informe PDF</span>
+    </button>
+    <p class="submit-hint">El PDF se descargara automaticamente en tu equipo.</p>
+  </div>
+
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    const MAX_KW = 20;
+    const list = document.getElementById("keywords-list");
+    const btnAdd = document.getElementById("btn-add-kw");
+    const counter = document.getElementById("kw-counter");
+    const form = document.getElementById("gmb-form");
+    const submitBtn = document.getElementById("submit-btn");
+
+    let nextIdx = 0;
+
+    function updateCounter() {
+      const n = list.children.length;
+      counter.textContent = `${n} de ${MAX_KW} keywords`;
+      counter.classList.toggle("warn", n >= MAX_KW);
+      btnAdd.disabled = n >= MAX_KW;
+      btnAdd.style.opacity = n >= MAX_KW ? "0.5" : "1";
+      btnAdd.style.cursor = n >= MAX_KW ? "not-allowed" : "pointer";
+
+      // Renumerar todos los indices visuales
+      Array.from(list.children).forEach((row, i) => {
+        const idxLabel = row.querySelector(".kw-index");
+        if (idxLabel) idxLabel.textContent = String(i + 1).padStart(2, "0");
+      });
+    }
+
+    function addRow() {
+      if (list.children.length >= MAX_KW) return;
+      const idx = nextIdx++;
+      const row = document.createElement("div");
+      row.className = "keyword-row";
+      row.dataset.idx = idx;
+      row.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span class="kw-index">01</span>
+          <input type="text" name="kw_name" placeholder="crossfit salamanca" required>
+        </div>
+        <input type="text" name="kw_volume" placeholder="~250 o <15" required>
+        <input type="number" name="kw_position" placeholder="Pos." min="1" required>
+        <div class="checkbox-wrapper">
+          <input type="checkbox" id="lp_${idx}" name="kw_local_pack_${idx}">
+          <label for="lp_${idx}">Local Pack</label>
+        </div>
+        <button type="button" class="btn-remove" aria-label="Quitar keyword" title="Quitar">&times;</button>
+        <input type="hidden" name="kw_index" value="${idx}">
+      `;
+      list.appendChild(row);
+      row.querySelector(".btn-remove").addEventListener("click", () => {
+        row.remove();
+        updateCounter();
+      });
+      updateCounter();
+      // Foco en el primer input de la fila nueva
+      row.querySelector("input[name='kw_name']").focus();
+    }
+
+    btnAdd.addEventListener("click", addRow);
+
+    // Empezamos con una fila vacia
+    addRow();
+
+    // Loading state al enviar
+    form.addEventListener("submit", () => {
+      submitBtn.dataset.loading = "true";
+      // Reset del loading tras unos segundos por si algo falla
+      setTimeout(() => {
+        submitBtn.dataset.loading = "false";
+      }, 30000);
+    });
+  })();
+</script>
+{% endblock %}
