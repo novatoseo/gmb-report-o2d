@@ -2,6 +2,7 @@ import { gsap } from 'gsap';
 import type { Vector3 } from 'three';
 import { CATS, FINCA, PLACES, type Cat, type Place } from '../content';
 import { onLang, t, tr } from '../i18n';
+import { asset } from '../asset';
 import type { Terrain3D } from '../map3d/terrain';
 
 const ICONS: Record<Cat, string> = {
@@ -78,7 +79,7 @@ export function initMap(reduced: boolean) {
     const cat = CATS.find((c) => c.id === p.cat)!;
     card.innerHTML = `
       <article class="mc">
-        ${p.photo ? `<div class="mc-photo"><img src="/photos/${p.photo}" alt="${p.name}" loading="lazy" decoding="async" /></div>` : ''}
+        ${p.photo ? `<div class="mc-photo"><img src="${asset(`photos/${p.photo}`)}" alt="${p.name}" loading="lazy" decoding="async" /></div>` : ''}
         <div class="mc-body">
           <p class="chip is-on" style="--c:${cat.color}">${tr(cat.label)}</p>
           <h3 class="h3">${p.name}</h3>

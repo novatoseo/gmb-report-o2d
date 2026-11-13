@@ -1,44 +1,22 @@
 import { gsap } from 'gsap';
 import { HOUSES, type House } from '../content';
 import { onLang, t, tr } from '../i18n';
-import { LivePhoto } from '../live/livephoto';
-import { scene, UNITS } from '../live/scenes';
+import { asset } from '../asset';
 import { lockScroll, scrollToId } from '../scroll';
 import { selectHouse } from './booking';
 
 export function initHouses(reduced: boolean) {
-  const facade = document.getElementById('facade')!;
-  const hits = document.getElementById('facade-hits')!;
   const cards = document.getElementById('house-cards')!;
   const dialog = document.getElementById('house-dialog') as HTMLDialogElement;
 
-  // La foto real de la fachada: cada cristalera es una casa.
-  const sc = scene('fachada');
-  const live = new LivePhoto(facade, sc, { pointer: true, label: 'Fachada de las tres casas al atardecer: Maelo a la izquierda, Braña en el centro y Teleno a la derecha' });
-  const fx = { on: 0 };
-  // Posición en pantalla de una zona de la imagen (la foto se muestra entera, con el zoom base).
-  const z = sc.zoom ?? 1;
-  const pos = (v: number) => ((v - 0.5) * z + 0.5) * 100;
-
   const light = (id: string | null) => {
-    if (id) live.hi = UNITS[id as House['id']];
-    gsap.to(fx, { on: id ? 1 : 0, duration: reduced ? 0 : 0.5, ease: 'power2.out', onUpdate: () => { live.hiOn = fx.on; live.redraw(); } });
-    facade.classList.toggle('has-on', !!id);
-    hits.querySelectorAll<HTMLElement>('.hit').forEach((h) => h.classList.toggle('is-on', h.dataset.id === id));
     cards.querySelectorAll<HTMLElement>('.house-card').forEach((c) => c.classList.toggle('is-on', c.dataset.id === id));
   };
 
   const render = () => {
-    hits.innerHTML = HOUSES.map((h) => {
-      const [x0, y0, x1, y1] = UNITS[h.id];
-      return `<button type="button" class="hit" data-id="${h.id}" style="left:${pos(x0)}%;top:${pos(y0)}%;width:${pos(x1) - pos(x0)}%;height:${pos(y1) - pos(y0)}%">
-        <span class="hit-tag"><b>${h.name}</b><span class="hit-price"> ${t('from')} ${h.priceFrom} €</span></span>
-        <span class="sr">${t('enter')} ${h.name}</span>
-      </button>`;
-    }).join('');
     cards.innerHTML = HOUSES.map((h) => `
       <article class="house-card" data-id="${h.id}" data-reveal>
-        <div class="hc-photo"><img src="/photos/${h.photos[0].src}" alt="${tr(h.photos[0].alt)}" loading="lazy" decoding="async" width="1920" height="1080" /></div>
+        <div class="hc-photo"><img src="${asset(`photos/${h.photos[0].src}`)}" alt="${tr(h.photos[0].alt)}" loading="lazy" decoding="async" width="1920" height="1080" /></div>
         <p class="eyebrow">${tr(h.position)}</p>
         <h3 class="h3">${h.name}</h3>
         <p>${tr(h.tagline)}</p>
@@ -56,7 +34,7 @@ export function initHouses(reduced: boolean) {
     const el = (e.target as Element).closest<HTMLElement>('[data-id]');
     light(el?.dataset.id ?? null);
   };
-  for (const root of [hits, cards]) {
+  for (const root of [cards]) {
     root.addEventListener('pointerover', over);
     root.addEventListener('focusin', over);
     root.addEventListener('pointerleave', () => light(null));
@@ -76,7 +54,7 @@ export function initHouses(reduced: boolean) {
       <div class="hd-inner" data-lenis-prevent>
         <button type="button" class="round hd-close" aria-label="${t('close')}">✕</button>
         <div class="hd-gallery">
-          <div class="hd-track">${h.photos.map((p, i) => `<img src="/photos/${p.src}" alt="${tr(p.alt)}" ${i ? 'loading="lazy"' : ''} decoding="async" />`).join('')}</div>
+          <div class="hd-track">${h.photos.map((p, i) => `<img src="${asset(`photos/${p.src}`)}" alt="${tr(p.alt)}" ${i ? 'loading="lazy"' : ''} decoding="async" />`).join('')}</div>
           <div class="hd-nav">
             <button type="button" class="round" data-dir="-1" aria-label="${t('prev')}">←</button>
             <span class="hd-count" aria-live="polite"></span>

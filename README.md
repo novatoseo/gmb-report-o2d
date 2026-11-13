@@ -1,4 +1,4 @@
-# La Finca del Valle · concepto interactivo con fotos vivas
+# La Finca del Valle · concepto interactivo: un viaje 3D por el valle
 
 Concepto de rediseño **no oficial** para [La Finca del Valle](https://www.lafincadelvalle.com/), tres casas rurales de diseño en el Valle de Vegacervera (León). Es una web de una sola página hecha con **las fotos reales de la casa, animadas en WebGL**. Cada foto tiene un mapa de profundidad generado con IA, así que la cámara se mueve en 3D por dentro de la imagen. Encima se añaden nubes, niebla, nieve, luces que titilan y el paso del atardecer a la noche.
 
@@ -17,12 +17,11 @@ npm run preview   # sirve dist/ en http://localhost:4173
 
 | Sección | Qué hace |
 | --- | --- |
-| **Hero** | Foto aérea real al atardecer con profundidad 3D (sigue al ratón y al giroscopio). Un control pasa del atardecer a la noche: el valle se apaga, salen las estrellas y quedan encendidas las cristaleras. Al bajar, la cámara se acerca a las casas. |
+| **El viaje (3D)** | Una sola escena WebGL que el scroll recorre, al estilo de Igloo Inc (Site of the Year 2024 de Awwwards). Empieza al amanecer sobre las nubes y desciende por el relieve real de la cordillera hasta el valle del Torío. Luego atraviesa las fotos reales de la casa, que flotan en el cielo en 3D (cada foto se «quema» al pasar a la siguiente), y hace un foco sobre Maelo, Braña y Teleno. Sigue con el amanecer, la hora dorada y la ruta GPX del Faedo de Ciñera dibujándose sola, nieva sobre la sierra y termina de noche con las casas encendidas. Un HUD muestra la latitud, la longitud y la altitud reales de la cámara. |
 | **Nuestra historia** | Manuel y Valeria, con polaroids animadas y cifras que cuentan. |
-| **Un día en la finca** | Seis fotos reales encadenadas con el scroll: amanecer con niebla, otoño, vista aérea, el camino a la hora dorada, la fachada y la noche. Cada foto tiene su movimiento de cámara y cambia a la siguiente con un revelado que va de lejos a cerca. |
-| **Las casas** | La foto real de la fachada. Al pasar por una cristalera (Maelo, Braña o Teleno) se ilumina esa casa y el resto se atenúa. Al tocarla se abre su ficha con galería, datos y precio. |
+| **Las casas** | Tarjetas de Maelo, Braña y Teleno, y la ficha de cada una con galería, datos y precio. |
 | **Entorno** | Mapa 3D con el relieve real del valle (unos 45 × 31 km, con el sol y la bruma) y las 10 rutas GPX de la web oficial. Al elegir un lugar, la cámara vuela hasta él y se dibuja el camino desde la casa. Los ríos salen del propio relieve. León y Riaño, que quedan fuera, se señalan en el borde. Arrastrar gira el mapa y Ctrl + rueda acerca; en móvil se usan dos dedos y la página sigue haciendo scroll con uno. |
-| **Estaciones** | Panel vivo con el mismo encuadre en otoño y nevando: copos en tres capas de profundidad y niebla. Debajo, una tira de fotos de dron que se arrastra, con visor a pantalla completa. |
+| **Estaciones** | Tira de fotos de dron (otoño e invierno) que se arrastra, con visor a pantalla completa. |
 | **Opiniones** | Reseñas reales de Google y Booking.com como notas pegadas. |
 | **Reservar** | Selector de casa, calendario de rango y huéspedes, con una estimación por el precio «desde». Desde ahí se va al motor de reservas o se abre WhatsApp o un email con el mensaje ya escrito. |
 
@@ -30,9 +29,8 @@ Está en español e inglés, con el idioma recordado en el navegador. Con `prefe
 
 Hay protecciones de rendimiento:
 
-- En equipos sin GPU real (render por software) se muestran las fotos fijas.
-- La resolución del lienzo baja sola si el dispositivo no llega a la tasa de fotogramas.
-- La animación empieza cuando la página ya ha cargado, y cada escena se prepara solo al acercarse.
+- En equipos sin GPU real (render por software), y con movimiento reducido, el viaje se muestra como una secuencia de fotos con sus textos.
+- Three.js y los datos del relieve se descargan aparte, y el viaje solo se pinta mientras está en pantalla.
 
 Para forzar WebGL en pruebas: `?gl=force`.
 
@@ -41,7 +39,7 @@ Para forzar WebGL en pruebas: `?gl=force`.
 ## Stack
 
 - Vite + TypeScript, sin framework.
-- WebGL2 con un shader propio (`src/live/`): parallax por profundidad, *dolly* de cámara, nubes por campo de flujo, niebla fbm, nieve procedural, paso a la noche y transiciones.
+- Three.js para el viaje y el mapa (se cargan aparte). Shaders propios para el terreno (sol, nieve que baja de cota), el cielo (amanecer, estrellas), las fotos 3D (desplazadas con su mapa de profundidad y con un quemado al atravesarlas) y la nieve en el aire.
 - Three.js para el mapa 3D (`src/map3d/`), que se carga aparte solo al llegar a esa sección.
 - Datos de elevación públicos (Terrain Tiles de AWS Open Data / Mapzen), procesados con `tools/terrain.py`: altura en 16 bits, textura pintada (prado, bosque, roca caliza y ríos calculados por escorrentía) y rutas GPX.
 - Depth Anything V2 (ONNX), solo en preparación: `tools/depth.py` genera para cada foto una textura con profundidad (R), cielo (G) y luces (B).
@@ -54,9 +52,11 @@ Para forzar WebGL en pruebas: `?gl=force`.
 src/
   content.ts          contenido real (ES/EN): casas, momentos, lugares, reseñas, FAQ
   i18n.ts             idioma
-  live/shader.ts      shader de foto viva
-  live/livephoto.ts   motor WebGL (texturas, puntero, calidad adaptativa, sin GPU → foto fija)
-  live/scenes.ts      ajustes de cada foto y zonas de las casas
+  journey/journey.ts  el viaje: cámara, luz, nubes, fotos 3D, ruta, nieve y noche
+  journey/shaders.ts  terreno con nieve, cielo con estrellas, fotos 3D con quemado
+  three/terrainData.ts relieve real compartido por el viaje y el mapa
+  sections/journey.ts capítulos, HUD y versión en fotos
+  live/scenes.ts      zonas de las casas en la foto de la fachada
   live/tuning.ts      multiplicadores de intensidad y panel ?ajustes
   map3d/terrain.ts    mapa 3D: relieve, luz, rutas, vuelos de cámara
   time.ts             hora de Vegacervera

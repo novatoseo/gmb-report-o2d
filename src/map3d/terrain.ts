@@ -1,21 +1,13 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { gsap } from 'gsap';
+import { TerrainData, EXAG, type TerrainMeta } from '../three/terrainData';
 
 // Mapa 3D con el relieve real (Terrain Tiles de AWS/Mapzen, preparado con tools/terrain.py).
 // Unidades del mundo: kilómetros. Altura exagerada para que se lea el relieve.
 
-export interface TerrainMeta {
-  bbox: { west: number; east: number; north: number; south: number };
-  elevMin: number;
-  elevMax: number;
-  sizeKm: [number, number];
-  height: [number, number];
-  mercator: { z: number; x0: number; y0: number; px0: number; py0: number; px1: number; py1: number };
-  trails: Record<string, [number, number][]>;
-}
+export type { TerrainMeta };
 
-const EXAG = 1.35;
 const LIFT = 0.018; // km sobre el suelo para rutas
 
 function softwareGL(r: THREE.WebGLRenderer) {
@@ -31,9 +23,7 @@ export class Terrain3D {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(38, 1, 0.05, 220);
   controls!: OrbitControls;
-  private heights!: Float32Array;
-  private hw = 0;
-  private hh = 0;
+  data!: TerrainData;
   private W = 1;
   private H = 1;
   private needs = true;
@@ -56,20 +46,12 @@ export class Terrain3D {
       this.renderer.dispose();
       return false;
     }
-    const [meta, heightImg, colorTex] = await Promise.all([
-      fetch('/terrain/meta.json').then((r) => r.json() as Promise<TerrainMeta>),
-      new Promise<HTMLImageElement>((res, rej) => {
-        const i = new Image();
-        i.onload = () => res(i);
-        i.onerror = rej;
-        i.src = '/terrain/height.png';
-      }),
-      new THREE.TextureLoader().loadAsync('/terrain/color.webp'),
-    ]);
+    this.data = await TerrainData.load();
+    const meta = this.data.meta;
     this.meta = meta;
-    this.decodeHeights(heightImg);
-    this.W = meta.sizeKm[0];
-    this.H = this.W * (meta.height[1] / meta.height[0]);
+    const colorTex = this.data.color;
+    this.W = this.data.W;
+    this.H = this.data.H;
 
     const r = this.renderer;
     r.setPixelRatio(Math.min(devicePixelRatio, 1.75));
@@ -80,17 +62,7 @@ export class Terrain3D {
     this.host.prepend(r.domElement);
 
     // Terreno
-    const seg = [511, Math.round(511 * this.H / this.W)];
-    const geo = new THREE.PlaneGeometry(this.W, this.H, seg[0], seg[1]);
-    geo.rotateX(-Math.PI / 2);
-    const pos = geo.attributes.position as THREE.BufferAttribute;
-    for (let i = 0; i < pos.count; i++) {
-      const u = pos.getX(i) / this.W + 0.5;
-      const v = pos.getZ(i) / this.H + 0.5;
-      pos.setY(i, this.heightAt(u, v));
-    }
-    geo.computeVertexNormals();
-    colorTex.colorSpace = THREE.SRGBColorSpace;
+    const geo = this.data.geometry(511);
     colorTex.anisotropy = r.capabilities.getMaxAnisotropy();
     const ground = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: colorTex, roughness: 0.95, metalness: 0 }));
     this.scene.add(ground);
@@ -148,42 +120,16 @@ export class Terrain3D {
     return true;
   }
 
-  private decodeHeights(img: HTMLImageElement) {
-    const cv = document.createElement('canvas');
-    cv.width = this.hw = img.width;
-    cv.height = this.hh = img.height;
-    const ctx = cv.getContext('2d', { willReadFrequently: true })!;
-    ctx.drawImage(img, 0, 0);
-    const d = ctx.getImageData(0, 0, cv.width, cv.height).data;
-    const { elevMin: lo, elevMax: hi } = this.meta;
-    this.heights = new Float32Array(cv.width * cv.height);
-    for (let i = 0; i < this.heights.length; i++) this.heights[i] = lo + ((d[i * 4] * 256 + d[i * 4 + 1]) / 65535) * (hi - lo);
-  }
-
-  /** Altura del mundo (km, exagerada) en coordenadas de imagen u, v (0–1). */
   heightAt(u: number, v: number) {
-    const x = THREE.MathUtils.clamp(u, 0, 1) * (this.hw - 1);
-    const y = THREE.MathUtils.clamp(v, 0, 1) * (this.hh - 1);
-    const x0 = Math.floor(x), y0 = Math.floor(y);
-    const x1 = Math.min(x0 + 1, this.hw - 1), y1 = Math.min(y0 + 1, this.hh - 1);
-    const fx = x - x0, fy = y - y0;
-    const h = this.heights;
-    const a = h[y0 * this.hw + x0] * (1 - fx) + h[y0 * this.hw + x1] * fx;
-    const b = h[y1 * this.hw + x0] * (1 - fx) + h[y1 * this.hw + x1] * fx;
-    return ((a * (1 - fy) + b * fy) / 1000) * EXAG;
+    return this.data.heightAt(u, v);
   }
 
-  /** Latitud/longitud → coordenadas de imagen (u, v), con la misma proyección que las teselas. */
   uv(lat: number, lon: number): [number, number] {
-    const m = this.meta.mercator;
-    const n = 2 ** m.z;
-    const x = ((lon + 180) / 360 * n - m.x0) * 256;
-    const y = ((1 - Math.asinh(Math.tan((lat * Math.PI) / 180)) / Math.PI) / 2 * n - m.y0) * 256;
-    return [(x - m.px0) / (m.px1 - m.px0), (y - m.py0) / (m.py1 - m.py0)];
+    return this.data.uv(lat, lon);
   }
 
   world(u: number, v: number, lift = 0) {
-    return new THREE.Vector3((u - 0.5) * this.W, this.heightAt(u, v) + lift, (v - 0.5) * this.H);
+    return this.data.world(u, v, lift);
   }
 
   inside(u: number, v: number) {

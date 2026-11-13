@@ -2,34 +2,16 @@ import { gsap } from 'gsap';
 import { GALLERY, REVIEWS, type Shot } from '../content';
 import { onLang, t, tr } from '../i18n';
 import { lockScroll } from '../scroll';
-import { LivePhoto } from '../live/livephoto';
-import { scene } from '../live/scenes';
+import { asset } from '../asset';
 
 export function initGallery(reduced: boolean) {
   const strip = document.getElementById('strip')!;
   const chips = document.getElementById('season-chips')!;
   const box = document.getElementById('lightbox') as HTMLDialogElement;
   let season: Shot['season'] | 'all' = 'all';
-
-  // Panel vivo: el mismo sitio en otoño y nevando.
-  const panel = document.getElementById('season-live')!;
-  const label = document.getElementById('season-label')!;
-  const autumn = scene('otono');
-  const winter = scene('invierno');
-  const live = new LivePhoto(panel, autumn, { pointer: true, label: 'Las casas desde el aire: en otoño y nevadas' });
-  live.b = winter;
-  live.onReady = () => live.load(winter);
-  const fx = { m: 0 };
-  const showSeason = (w: boolean) => {
-    gsap.to(fx, { m: w ? 1 : 0, duration: reduced ? 0 : 2.2, ease: 'power2.inOut', onUpdate: () => { live.mix = fx.m; live.redraw(); } });
-    label.textContent = t(w ? 'winter' : 'autumn');
-    panel.classList.toggle('is-winter', w);
-  };
-  label.textContent = t('autumn');
-  onLang(() => (label.textContent = t(fx.m > 0.5 ? 'winter' : 'autumn')));
-  panel.querySelector('.season-toggle')!.addEventListener('click', () => showSeason(fx.m < 0.5));
   let shots = GALLERY;
   let idx = 0;
+
 
   const render = () => {
     chips.setAttribute('aria-label', t('galleryEyebrow'));
@@ -39,7 +21,7 @@ export function initGallery(reduced: boolean) {
     strip.innerHTML = shots.map((g, i) => `
       <figure class="shot ${g.season}">
         <button type="button" data-i="${i}" aria-label="${tr(g.caption)}">
-          <img src="/photos/${g.base}-800.webp" srcset="/photos/${g.base}-800.webp 800w, /photos/${g.base}-1200.webp 1200w" sizes="(max-width: 700px) 85vw, 46vw" alt="${tr(g.alt)}" loading="lazy" decoding="async" width="1200" height="675" />
+          <img src="${asset(`photos/${g.base}-800.webp`)}" srcset="${asset(`photos/${g.base}-800.webp`)} 800w, ${asset(`photos/${g.base}-1200.webp`)} 1200w" sizes="(max-width: 700px) 85vw, 46vw" alt="${tr(g.alt)}" loading="lazy" decoding="async" width="1200" height="675" />
         </button>
         <figcaption><i aria-hidden="true">${g.season === 'winter' ? '❄' : '❦'}</i> ${tr(g.caption)}</figcaption>
       </figure>`).join('');
@@ -54,7 +36,6 @@ export function initGallery(reduced: boolean) {
     if (!b) return;
     season = b.dataset.s as typeof season;
     render();
-    if (season !== 'all') showSeason(season === 'winter');
   });
 
   const page = (dir: number) => strip.scrollBy({ left: dir * strip.clientWidth * 0.8, behavior: reduced ? 'auto' : 'smooth' });
@@ -86,7 +67,7 @@ export function initGallery(reduced: boolean) {
     const g = shots[idx];
     box.innerHTML = `
       <figure>
-        <img src="/photos/${g.base}-1200.webp" alt="${tr(g.alt)}" />
+        <img src="${asset(`photos/${g.base}-1200.webp`)}" alt="${tr(g.alt)}" />
         <figcaption>${tr(g.caption)} <span>${idx + 1} / ${shots.length}</span></figcaption>
       </figure>
       <button type="button" class="round lb-close" aria-label="${t('close')}">✕</button>

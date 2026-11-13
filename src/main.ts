@@ -1,6 +1,7 @@
 import '@fontsource-variable/fraunces/soft.css';
 import '@fontsource-variable/fraunces/soft-italic.css';
 import '@fontsource-variable/figtree';
+import '@fontsource-variable/jetbrains-mono';
 import 'lenis/dist/lenis.css';
 import './styles/main.css';
 import { gsap } from 'gsap';
@@ -9,8 +10,7 @@ import { CONTACT } from './content';
 import { applyStatic, lang, setLang, onLang, t } from './i18n';
 import { bindAnchors, initScroll } from './scroll';
 import { initFx } from './fx';
-import { initHero } from './sections/hero';
-import { initDay } from './sections/day';
+import { initJourney } from './sections/journey';
 import { initHouses } from './sections/houses';
 import { initMap } from './sections/map';
 import { initGallery, initReviews } from './sections/gallery';
@@ -27,8 +27,7 @@ initScroll(reduced);
 bindAnchors();
 
 initBooking();
-initHero(reduced);
-initDay();
+initJourney(reduced);
 initHouses(reduced);
 initMap(reduced);
 initGallery(reduced);

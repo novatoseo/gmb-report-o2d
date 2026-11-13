@@ -187,6 +187,50 @@ export const MOMENTS: Moment[] = [
   },
 ];
 
+/** Capítulos del viaje 3D (mismo orden que CHAPTERS en journey.ts). */
+export const JOURNEY: Record<string, { eyebrow: L; title: L; text?: L }> = {
+  intro: {
+    eyebrow: { es: 'Valle de Vegacervera · León', en: 'Vegacervera Valley · León, Spain' },
+    title: { es: 'La Finca del Valle', en: 'La Finca del Valle' },
+    text: { es: 'Tres casas de diseño en la Reserva de la Biosfera de los Argüellos. Baja: el viaje empieza aquí arriba.', en: 'Three design houses in the Argüellos Biosphere Reserve. Scroll down: the journey starts up here.' },
+  },
+  descent: {
+    eyebrow: { es: 'Montaña central de León', en: 'León’s central mountains' },
+    title: { es: 'Caliza, hayedos y silencio.', en: 'Limestone, beech woods and silence.' },
+    text: { es: 'Este es el relieve real de la cordillera, de Pajares al valle del Torío. A 35 minutos de León, con carretera asfaltada hasta la puerta.', en: 'This is the real relief of the range, from Pajares down to the Torío valley. 35 minutes from León, paved road to the door.' },
+  },
+  house: {
+    eyebrow: { es: 'Barrio Abajo · Valle de Vegacervera', en: 'Barrio Abajo · Valle de Vegacervera' },
+    title: { es: 'Tres casas, un mismo lenguaje.', en: 'Three houses, one language.' },
+    text: { es: 'Pizarra, madera y grandes ventanales al bosque. Suelo radiante, terraza equipada y el pueblo detrás.', en: 'Slate, timber and big windows onto the forest. Underfloor heating, a furnished terrace and the village behind.' },
+  },
+  sunrise: {
+    eyebrow: { es: '07:12 · Amanecer', en: '07:12 · Sunrise' },
+    title: { es: 'El sol sale entre montañas.', en: 'The sun rises between mountains.' },
+    text: { es: '«Despertar viendo el sol salir entre montañas ha sido mágico», escribe un huésped en Google.', en: '“Waking up to the sun rising between the mountains was magical,” writes a Google reviewer.' },
+  },
+  golden: {
+    eyebrow: { es: '19:36 · Hora dorada', en: '19:36 · Golden hour' },
+    title: { es: 'Los caminos salen desde la puerta.', en: 'The trails start at the door.' },
+    text: { es: 'Cinco rutas con track GPX empiezan en las casas: de una hora de paseo a tres hasta el Faedo de Ciñera.', en: 'Five GPX trails start at the houses: from a one-hour stroll to three hours to the Faedo de Ciñera.' },
+  },
+  trail: {
+    eyebrow: { es: 'Ruta GPX real · 3 h · media-baja', en: 'Real GPX trail · 3 h · easy-moderate' },
+    title: { es: 'Hasta el Faedo de Ciñera.', en: 'To the Faedo de Ciñera.' },
+    text: { es: 'El Bosque Mejor Conservado de España, a pie desde la casa y pasando por el Pozo Ibarra.', en: 'Spain’s Best Preserved Forest, on foot from the house via Pozo Ibarra.' },
+  },
+  winter: {
+    eyebrow: { es: 'Invierno', en: 'Winter' },
+    title: { es: 'Mismo sitio. Otra estación.', en: 'Same place. Another season.' },
+    text: { es: 'Suelo radiante dentro y la nieve a media hora: Valgrande-Pajares a unos 28 km, San Isidro a 55 minutos.', en: 'Underfloor heating inside and snow half an hour away: Valgrande-Pajares about 28 km, San Isidro 55 minutes.' },
+  },
+  night: {
+    eyebrow: { es: '22:47 · Noche', en: '22:47 · Night' },
+    title: { es: 'Y el silencio empieza aquí.', en: 'And this is where the silence begins.' },
+    text: { es: 'Sin ruido ni luces de ciudad. Las tres casas encendidas y el cielo de los Argüellos encima.', en: 'No noise, no city lights. The three houses glowing and the Argüellos sky above.' },
+  },
+};
+
 export type Cat = 'trail' | 'nature' | 'adventure' | 'snow' | 'food' | 'arrive';
 
 export interface Place {
@@ -292,7 +336,10 @@ export const FAQS: { q: L; a: L }[] = [
 /** Textos fijos de la interfaz. */
 export const UI = {
   navHouses: { es: 'Casas', en: 'Houses' },
-  navDay: { es: 'Un día', en: 'A day' },
+  navDay: { es: 'El viaje', en: 'The journey' },
+  journeyLoading: { es: 'Cargando el valle', en: 'Loading the valley' },
+  journeyStart: { es: 'Baja para empezar el viaje', en: 'Scroll to start the journey' },
+  journeyFallback: { es: 'Tu dispositivo muestra la versión en fotos del viaje.', en: 'Your device shows the photo version of the journey.' },
   navMap: { es: 'Entorno', en: 'Around' },
   navGallery: { es: 'Estaciones', en: 'Seasons' },
   navBook: { es: 'Reservar', en: 'Book' },
