@@ -10,6 +10,26 @@ import { UNITS } from '../live/scenes';
 
 const FONT = asset('fonts/fraunces-600.woff');
 
+/**
+ * troika solo avisa cuando de verdad vuelve a maquetar: si el texto no ha cambiado, o si la
+ * fuente no carga, el aviso no llega nunca. Esta versión siempre termina (como mucho en 6 s).
+ */
+function syncText(text: Text): Promise<void> {
+  return new Promise((res) => {
+    let done = false;
+    const finish = () => {
+      if (!done) {
+        done = true;
+        res();
+      }
+    };
+    text.sync(finish);
+    const st = text as unknown as { _isSyncing?: boolean; _needsSync?: boolean };
+    if (!st._isSyncing && !st._needsSync) finish();
+    setTimeout(finish, 6000);
+  });
+}
+
 const VERT = /* glsl */ `
 uniform float uReveal, uPass;
 varying vec2 vTU;
@@ -45,6 +65,8 @@ void main() {
   if (n < uPass * 1.25 - 0.15) discard;
   float rim = smoothstep(uPass * 1.25 - 0.05, uPass * 1.25 - 0.15, n) * step(0.001, uPass);
   vec3 c = mix(uColor, vec3(1.0, 0.62, 0.3) * 1.5, rim);
+  // Pasada de contorno de troika (difuminado > 0): sombra azul noche detrás de las letras.
+  if (uTroikaBlurRadius > 0.0) c = vec3(0.03, 0.05, 0.13);
   gl_FragColor = vec4(c, uOpacity * vK);
 }`;
 
@@ -100,6 +122,9 @@ export class Titles {
       text.anchorY = 'middle';
       text.textAlign = 'center';
       text.material = mat;
+      text.outlineBlur = '24%';
+      text.outlineColor = '#0b1433';
+      text.outlineOpacity = 0.8;
       text.renderOrder = 10;
       text.frustumCulled = false;
       text.visible = false;
@@ -117,6 +142,9 @@ export class Titles {
         x.anchorX = 'center';
         x.anchorY = 'bottom';
         x.material = m;
+        x.outlineBlur = '25%';
+        x.outlineColor = '#0b1433';
+        x.outlineOpacity = 0.6;
         x.renderOrder = 11;
         x.frustumCulled = false;
         x.visible = false;
@@ -133,21 +161,20 @@ export class Titles {
     for (const it of this.items) {
       it.text.text = tr(JOURNEY[it.spec.id].title);
       it.text.maxWidth = narrow ? 6.5 : 13;
-      jobs.push(new Promise((res) => it.text.sync(() => {
+      jobs.push(syncText(it.text).then(() => {
         const b = it.text.textRenderInfo?.blockBounds;
         if (b) {
-          it.w0 = b[2] - b[0];
-          it.h0 = b[3] - b[1];
+          it.w0 = Math.max(0.1, b[2] - b[0]);
+          it.h0 = Math.max(0.1, b[3] - b[1]);
         }
-        res();
-      })));
+      }));
     }
     HOUSES.forEach((h, i) => {
       const l = this.labels[i];
       l.text.text = h.name;
       l.sub.text = `${h.area} m² · ${t('from')} ${h.priceFrom} €`.toUpperCase();
-      l.text.sync();
-      l.sub.sync();
+      void syncText(l.text);
+      void syncText(l.sub);
     });
     return Promise.all(jobs);
   }

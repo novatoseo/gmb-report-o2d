@@ -165,7 +165,7 @@ void main() {
   p = mod(p - uCam + box * 0.5, box) - box * 0.5 + uCam;
   vec4 mv = viewMatrix * vec4(p, 1.0);
   gl_Position = projectionMatrix * mv;
-  gl_PointSize = uSize * (0.6 + aSeed) / -mv.z;
+  gl_PointSize = min(uSize * (0.6 + aSeed) / -mv.z, 48.0);
   vA = smoothstep(4.5, 0.4, -mv.z);
 }`;
 

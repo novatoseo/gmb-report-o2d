@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { gsap } from 'gsap';
 import { TerrainData, EXAG, type TerrainMeta } from '../three/terrainData';
+import { hasRealGPU } from '../gpu';
 
 // Mapa 3D con el relieve real (Terrain Tiles de AWS/Mapzen, preparado con tools/terrain.py).
 // Unidades del mundo: kilómetros. Altura exagerada para que se lea el relieve.
@@ -9,13 +10,6 @@ import { TerrainData, EXAG, type TerrainMeta } from '../three/terrainData';
 export type { TerrainMeta };
 
 const LIFT = 0.018; // km sobre el suelo para rutas
-
-function softwareGL(r: THREE.WebGLRenderer) {
-  const gl = r.getContext();
-  const ext = gl.getExtension('WEBGL_debug_renderer_info');
-  const name = String(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER));
-  return /swiftshader|llvmpipe|softpipe|software/i.test(name);
-}
 
 export class Terrain3D {
   meta!: TerrainMeta;
@@ -28,6 +22,7 @@ export class Terrain3D {
   private H = 1;
   private needs = true;
   private visible = false;
+  private raf = 0;
   private flying: gsap.core.Tween | null = null;
   private trails = new Map<string, THREE.Mesh>();
   private route: THREE.Mesh | null = null;
@@ -37,16 +32,14 @@ export class Terrain3D {
 
   /** Devuelve false si no hay WebGL con GPU real. */
   async init(): Promise<boolean> {
+    if (!hasRealGPU()) return false;
+    // Los datos antes que el contexto: si la red falla no queda un WebGL abierto.
+    this.data = await TerrainData.load();
     try {
       this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
     } catch {
       return false;
     }
-    if (softwareGL(this.renderer) && !location.search.includes('gl=force')) {
-      this.renderer.dispose();
-      return false;
-    }
-    this.data = await TerrainData.load();
     const meta = this.data.meta;
     this.meta = meta;
     const colorTex = this.data.color;
@@ -114,7 +107,7 @@ export class Terrain3D {
     new ResizeObserver(() => this.resize()).observe(this.host);
     new IntersectionObserver(([e]) => {
       this.visible = e.isIntersecting;
-      if (this.visible) this.loop();
+      if (this.visible) this.wake();
     }).observe(this.host);
     this.resize();
     return true;
@@ -151,10 +144,16 @@ export class Terrain3D {
     this.camera.aspect = r.width / r.height;
     this.camera.updateProjectionMatrix();
     this.needs = true;
-    this.loop();
+    this.wake();
+  }
+
+  /** Arranca el bucle si no está ya en marcha (nunca hay dos a la vez). */
+  private wake() {
+    if (!this.raf && this.visible) this.raf = requestAnimationFrame(this.loop);
   }
 
   private loop = () => {
+    this.raf = 0;
     if (!this.visible) return;
     const moving = this.controls.update() || this.flying;
     if (this.needs || moving) {
@@ -162,7 +161,7 @@ export class Terrain3D {
       this.onRender?.();
       this.needs = false;
     }
-    requestAnimationFrame(this.loop);
+    this.raf = requestAnimationFrame(this.loop);
   };
 
   redraw() {
@@ -271,6 +270,7 @@ export class Terrain3D {
     if (this.route) {
       this.scene.remove(this.route);
       this.route.geometry.dispose();
+      (this.route.material as THREE.Material).dispose();
       this.route = null;
     }
     this.needs = true;

@@ -141,6 +141,8 @@ export function initBooking() {
   pick.addEventListener('change', (e) => {
     state.house = (e.target as HTMLInputElement).value as House['id'];
     renderAll();
+    // Se rehace el HTML: el foco vuelve a la casa elegida (si no, el teclado salta al inicio).
+    pick.querySelector<HTMLInputElement>('input:checked')?.focus();
   });
 
   cal.addEventListener('click', (e) => {
@@ -148,7 +150,10 @@ export function initBooking() {
     const m = el.closest<HTMLButtonElement>('[data-m]');
     if (m) {
       state.month = new Date(state.month.getFullYear(), state.month.getMonth() + Number(m.dataset.m), 1);
-      return renderCal();
+      renderCal();
+      const again = cal.querySelector<HTMLButtonElement>(`[data-m="${m.dataset.m}"]`);
+      (again && !again.disabled ? again : cal.querySelector<HTMLButtonElement>('[data-m="1"]'))?.focus();
+      return;
     }
     const day = el.closest<HTMLButtonElement>('button.cal-day');
     if (!day || day.disabled) return;

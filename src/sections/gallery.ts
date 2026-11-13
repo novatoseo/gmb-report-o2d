@@ -36,6 +36,7 @@ export function initGallery(reduced: boolean) {
     if (!b) return;
     season = b.dataset.s as typeof season;
     render();
+    chips.querySelector<HTMLButtonElement>(`[data-s="${season}"]`)?.focus();
   });
 
   const page = (dir: number) => strip.scrollBy({ left: dir * strip.clientWidth * 0.8, behavior: reduced ? 'auto' : 'smooth' });
@@ -63,17 +64,23 @@ export function initGallery(reduced: boolean) {
   });
 
   // —— Visor a pantalla completa ——
+  // Los botones se crean una vez; al pasar de foto solo cambia la figura y el foco no se pierde.
+  box.innerHTML = `
+    <figure><img alt="" /><figcaption></figcaption></figure>
+    <button type="button" class="round lb-close">✕</button>
+    <button type="button" class="round lb-prev">←</button>
+    <button type="button" class="round lb-next">→</button>`;
+  const img = box.querySelector('img')!;
+  const cap = box.querySelector('figcaption')!;
   const show = () => {
     const g = shots[idx];
-    box.innerHTML = `
-      <figure>
-        <img src="${asset(`photos/${g.base}-1200.webp`)}" alt="${tr(g.alt)}" />
-        <figcaption>${tr(g.caption)} <span>${idx + 1} / ${shots.length}</span></figcaption>
-      </figure>
-      <button type="button" class="round lb-close" aria-label="${t('close')}">✕</button>
-      <button type="button" class="round lb-prev" aria-label="${t('prev')}">←</button>
-      <button type="button" class="round lb-next" aria-label="${t('next')}">→</button>`;
-    if (!reduced) gsap.from(box.querySelector('img'), { scale: 0.96, opacity: 0, duration: 0.4, ease: 'power2.out' });
+    img.src = asset(`photos/${g.base}-1200.webp`);
+    img.alt = tr(g.alt);
+    cap.innerHTML = `${tr(g.caption)} <span>${idx + 1} / ${shots.length}</span>`;
+    box.querySelector('.lb-close')!.setAttribute('aria-label', t('close'));
+    box.querySelector('.lb-prev')!.setAttribute('aria-label', t('prev'));
+    box.querySelector('.lb-next')!.setAttribute('aria-label', t('next'));
+    if (!reduced) gsap.fromTo(img, { scale: 0.96, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: 'power2.out', overwrite: true });
   };
   const step = (d: number) => {
     idx = (idx + d + shots.length) % shots.length;
@@ -81,7 +88,10 @@ export function initGallery(reduced: boolean) {
   };
   strip.addEventListener('click', (e) => {
     const b = (e.target as Element).closest<HTMLButtonElement>('[data-i]');
-    if (!b || moved > 6) return;
+    // Tras arrastrar no se abre el visor; con teclado (detail 0) siempre.
+    const dragged = e.detail > 0 && moved > 6;
+    moved = 0;
+    if (!b || dragged) return;
     idx = Number(b.dataset.i);
     show();
     box.showModal();

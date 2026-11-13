@@ -64,7 +64,7 @@
         </div>
         <button type="button" class="j-sound" aria-pressed="false">
           <span class="j-sound-bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-          <span class="j-sound-label" data-i18n="soundOn">Activar sonido</span>
+          <span class="j-sound-label" data-i18n="soundLabel">Sonido ambiente</span>
         </button>
         <div class="j-progress" aria-hidden="true"><i></i></div>
         <div class="j-pre" aria-hidden="true">
@@ -181,9 +181,9 @@
           <fieldset>
             <legend><b>03</b> <span data-i18n="step3">Huéspedes</span></legend>
             <div class="stepper">
-              <button type="button" class="round" id="g-minus" aria-label="−">−</button>
+              <button type="button" class="round" id="g-minus" data-i18n-attr="aria-label:guestsLess">−</button>
               <output id="guests" aria-live="polite">2</output>
-              <button type="button" class="round" id="g-plus" aria-label="+">+</button>
+              <button type="button" class="round" id="g-plus" data-i18n-attr="aria-label:guestsMore">+</button>
             </div>
             <p class="fine" data-i18n="extraBed">La 5.ª plaza es una cama supletoria bajo petición.</p>
           </fieldset>
@@ -210,7 +210,7 @@
   </footer>
 
   <dialog class="house-dialog" id="house-dialog" aria-labelledby="hd-title"></dialog>
-  <dialog class="lightbox" id="lightbox" aria-label="Galería"></dialog>
+  <dialog class="lightbox" id="lightbox" data-i18n-attr="aria-label:gallery"></dialog>
 
   <script type="module" src="/src/main.ts"></script>
 </body>

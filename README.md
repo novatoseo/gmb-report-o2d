@@ -30,8 +30,11 @@ Está en español e inglés, con el idioma recordado en el navegador. Con `prefe
 
 Hay protecciones de rendimiento:
 
-- En equipos sin GPU real (render por software), y con movimiento reducido, el viaje se muestra como una secuencia de fotos con sus textos.
-- Three.js y los datos del relieve se descargan aparte, y el viaje solo se pinta mientras está en pantalla.
+- En equipos sin GPU real (render por software), y con movimiento reducido, el viaje se muestra como una secuencia de fotos con sus textos. La comprobación (`src/gpu.ts`) se hace antes de descargar nada: sin GPU no se bajan Three.js ni el relieve, y el mapa muestra la lista de lugares.
+- Three.js y los datos del relieve se descargan aparte y una sola vez (el viaje y el mapa los comparten), y cada escena solo se pinta mientras está en pantalla, con un único bucle.
+- Calidad adaptativa: si los fotogramas van lentos, el viaje baja la resolución y, en último caso, quita el bloom. Si la carga tarda demasiado o se pierde el contexto WebGL, pasa a la versión en fotos.
+- El sonido se suspende al salir del viaje o con la pestaña oculta.
+- Al rehacer partes de la página (calendario, casas, chips, visor de fotos, fichas del mapa) el foco del teclado vuelve al control equivalente.
 
 Para forzar WebGL en pruebas: `?gl=force`.
 
@@ -75,6 +78,6 @@ tools/terrain.py      generador del mapa 3D
 
 | Rendimiento | Accesibilidad | Buenas prácticas | SEO |
 | --- | --- | --- | --- |
-| ≈83 | 100 | 100 | — |
+| ≈67 | 100 | 100 | — |
 
-Lighthouse mide sin GPU, así que ahí se ve la versión de fotos fijas. La puntuación de SEO sale baja a propósito, por el `noindex`. Para producción bastaría con quitar el `noindex` y el `robots.txt`.
+Lighthouse mide sin GPU, así que ahí se ve la versión de fotos fijas (unos 900 KB en total, sin ningún archivo 3D). La puntuación de SEO sale baja a propósito, por el `noindex`. Para producción bastaría con quitar el `noindex` y el `robots.txt`.

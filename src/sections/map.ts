@@ -3,6 +3,7 @@ import type { Vector3 } from 'three';
 import { CATS, FINCA, PLACES, type Cat, type Place } from '../content';
 import { onLang, t, tr } from '../i18n';
 import { asset } from '../asset';
+import { hasRealGPU } from '../gpu';
 import type { Terrain3D } from '../map3d/terrain';
 
 const ICONS: Record<Cat, string> = {
@@ -156,15 +157,21 @@ export function initMap(reduced: boolean) {
   const io = new IntersectionObserver(async ([e]) => {
     if (!e.isIntersecting) return;
     io.disconnect();
-    map.classList.add('is-loading');
-    const { Terrain3D } = await import('../map3d/terrain');
-    const eng = new Terrain3D(map, reduced);
-    const ok = await eng.init().catch((err) => {
-      console.warn('[mapa 3D]', err);
-      return false;
-    });
-    map.classList.remove('is-loading');
-    if (!ok) {
+    // Sin GPU real no se descarga Three.js: lista de lugares y listo.
+    let eng: Terrain3D | null = null;
+    if (hasRealGPU()) {
+      map.classList.add('is-loading');
+      try {
+        const { Terrain3D } = await import('../map3d/terrain');
+        eng = new Terrain3D(map, reduced);
+        if (!(await eng.init())) eng = null;
+      } catch (err) {
+        console.warn('[mapa 3D]', err);
+        eng = null;
+      }
+      map.classList.remove('is-loading');
+    }
+    if (!eng) {
       map.classList.add('no-gl');
       renderCard();
       return;
@@ -189,12 +196,21 @@ export function initMap(reduced: boolean) {
     filter = b.dataset.cat as Cat | 'all';
     if (selected && filter !== 'all' && selected.cat !== filter) select(null);
     render();
+    chips.querySelector<HTMLButtonElement>(`[data-cat="${filter}"]`)?.focus();
   });
   const pickFrom = (e: Event) => {
     const el = e.target as Element;
-    if (el.closest('[data-back]')) return select(null);
+    const prev = selected?.id;
     const b = el.closest<HTMLButtonElement>('[data-id]');
-    if (b) select(b.dataset.id === selected?.id ? null : b.dataset.id!);
+    if (el.closest('[data-back]')) select(null);
+    else if (b) select(b.dataset.id === prev ? null : b.dataset.id!);
+    else return;
+    // Pines y ficha se rehacen: el foco va a lo equivalente (la ficha, o el lugar del que se volvió).
+    const host = e.currentTarget as HTMLElement;
+    const target = host === pins
+      ? pins.querySelector<HTMLElement>(`[data-id="${b?.dataset.id}"]`)
+      : selected ? card.querySelector<HTMLElement>('[data-back]') : card.querySelector<HTMLElement>(`[data-id="${prev}"]`);
+    target?.focus({ preventScroll: true });
   };
   pins.addEventListener('click', pickFrom);
   card.addEventListener('click', pickFrom);

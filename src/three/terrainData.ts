@@ -37,7 +37,18 @@ export class TerrainData {
     for (let i = 0; i < this.heights.length; i++) this.heights[i] = lo + ((d[i * 4] * 256 + d[i * 4 + 1]) / 65535) * (hi - lo);
   }
 
-  static async load(): Promise<TerrainData> {
+  private static pending: Promise<TerrainData> | null = null;
+
+  /** Se descarga una sola vez y se comparte entre el viaje y el mapa. */
+  static load(): Promise<TerrainData> {
+    TerrainData.pending ??= TerrainData.fetch().catch((e) => {
+      TerrainData.pending = null; // un fallo de red se puede reintentar
+      throw e;
+    });
+    return TerrainData.pending;
+  }
+
+  private static async fetch(): Promise<TerrainData> {
     const [meta, img, color] = await Promise.all([
       fetch(asset('terrain/meta.json')).then((r) => r.json() as Promise<TerrainMeta>),
       new Promise<HTMLImageElement>((res, rej) => {

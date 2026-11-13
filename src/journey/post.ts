@@ -112,7 +112,9 @@ export class Post {
 
   constructor(private renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, mobile: boolean) {
     const size = renderer.getSize(new THREE.Vector2());
-    this.composer = new EffectComposer(renderer);
+    // Antialias MSAA en el render target del postproceso (en móvil no, por coste).
+    const rt = new THREE.WebGLRenderTarget(size.x * renderer.getPixelRatio(), size.y * renderer.getPixelRatio(), { type: THREE.HalfFloatType, samples: mobile ? 0 : 4 });
+    this.composer = new EffectComposer(renderer, rt);
     this.composer.addPass(new RenderPass(scene, camera));
     this.bloom = new UnrealBloomPass(new THREE.Vector2(size.x / 2, size.y / 2), mobile ? 0.35 : 0.5, 0.65, 0.82);
     this.composer.addPass(this.bloom);
@@ -122,6 +124,10 @@ export class Post {
     this.trail = new Trail(Math.max(2, size.x / 6), Math.max(2, size.y / 6));
     this.final.uniforms.uTrail.value = this.trail.texture;
     addEventListener('pointermove', (e) => this.mouse.set(e.clientX / innerWidth, 1 - e.clientY / innerHeight), { passive: true });
+  }
+
+  setBloom(on: boolean) {
+    this.bloom.enabled = on;
   }
 
   resize(w: number, h: number) {

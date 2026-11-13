@@ -5,6 +5,7 @@ import { onLang, t, tr } from '../i18n';
 import { asset } from '../asset';
 import type { Journey } from '../journey/journey';
 import { Ambience } from '../journey/sound';
+import { hasRealGPU, withTimeout } from '../gpu';
 
 // Rangos de scroll de cada texto (deben coincidir con CHAPTERS en journey/journey.ts).
 const BLOCKS: { id: string; from: number; to: number; pos: 'center' | 'left' | 'right' | 'top'; bg: string; moment: number }[] = [
@@ -49,8 +50,8 @@ function scramble(nodes: HTMLElement[], delay = 0, step = 0.022) {
 }
 const charSpans = (el: Element) => {
   const text = el.textContent ?? '';
-  el.setAttribute('aria-label', text);
-  el.innerHTML = text.split(' ').map((w) => `<span class="jw" aria-hidden="true">${[...w].map((ch) => `<span class="jc">${ch}</span>`).join('')}</span>`).join(' ');
+  const safe = text.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  el.innerHTML = `<span class="sr">${safe}</span>` + text.split(' ').map((w) => `<span class="jw" aria-hidden="true">${[...w].map((ch) => `<span class="jc">${ch}</span>`).join('')}</span>`).join(' ');
 };
 
 const fmt = (v: number, pos: string, neg: string) => `${Math.abs(v).toFixed(3)}° ${v >= 0 ? pos : neg}`;
@@ -68,7 +69,7 @@ export function initJourney(reduced: boolean) {
   const sound = new Ambience();
   const paintSound = () => {
     soundBtn.setAttribute('aria-pressed', String(sound.on));
-    soundBtn.querySelector('.j-sound-label')!.textContent = t(sound.on ? 'soundOff' : 'soundOn');
+    soundBtn.querySelector('.j-sound-label')!.textContent = t('soundLabel');
     soundBtn.classList.toggle('is-on', sound.on);
   };
   soundBtn.addEventListener('click', async () => {
@@ -116,6 +117,7 @@ export function initJourney(reduced: boolean) {
     gsap.killTweensOf(section.querySelectorAll('.j-chap, .j-chap *'));
     render(); // capítulos nuevos, sin estado de animación
     section.classList.add('is-static');
+    nav.classList.remove('in-journey');
     pre.hidden = true;
     soundBtn.hidden = true;
     section.querySelector('.j-fallback')!.textContent = why ? t('journeyFallback') : '';
@@ -161,11 +163,15 @@ export function initJourney(reduced: boolean) {
     const moment = BLOCKS.find((x) => x.id === id)?.moment ?? 0;
     hud.querySelector('.j-name')!.textContent = `${String(moment + 1).padStart(2, '0')} / ${String(MOMENTS.length).padStart(2, '0')} · ${tr(MOMENTS[moment])}`;
   };
+  let langChanged = false;
   onLang(() => {
     render();
     if (!isStatic) update(last);
+    langChanged = true;
     void engine?.setLang();
   });
+  // Pestaña en segundo plano: el sonido se para.
+  document.addEventListener('visibilitychange', () => sound.pause(document.hidden || !trigger?.isActive));
 
   let last = 0;
   trigger = ScrollTrigger.create({
@@ -179,7 +185,8 @@ export function initJourney(reduced: boolean) {
     onToggle: (st) => {
       if (st.isActive) engine?.start();
       else engine?.stop();
-      nav.classList.toggle('in-journey', st.isActive);
+      sound.pause(!st.isActive);
+      if (!isStatic) nav.classList.toggle('in-journey', st.isActive);
     },
   });
   ScrollTrigger.create({
@@ -190,38 +197,48 @@ export function initJourney(reduced: boolean) {
   });
   update(0);
 
-  // El motor 3D (Three.js) se descarga aparte.
+  // El motor 3D (Three.js) se descarga aparte, y solo si hay una GPU real.
+  if (!hasRealGPU()) {
+    staticMode('no-gpu');
+    return;
+  }
   (async () => {
+    let j: Journey | null = null;
     try {
-      const { Journey } = await import('../journey/journey');
-      const j = new Journey(sticky, reduced);
-      if (j.isSoftware() && !location.search.includes('gl=force')) {
-        j.renderer.dispose();
-        j.renderer.domElement.remove();
-        staticMode('no-gpu');
-        return;
-      }
-      await j.init(setPre);
+      const { Journey } = await withTimeout(import('../journey/journey'), 20000, 'código del viaje');
+      j = new Journey(sticky, reduced);
+      // Si algo no llega en 25 s (fuente, relieve, fotos), se pasa a la versión en fotos.
+      await withTimeout(j.init(setPre), 25000, 'carga del viaje');
       setPre(1);
       j.onMix = (m) => sound.set(m);
       j.onHud = (h) => {
         hud.querySelector('.j-coord')!.textContent = `${fmt(h.lat, 'N', 'S')} · ${fmt(h.lon, 'E', 'W')}`;
         hud.querySelector('.j-alt')!.textContent = `ALT ${Math.round(h.alt).toLocaleString('es-ES')} m`;
       };
+      j.onLost = () => {
+        engine = null;
+        sound.pause(true);
+        staticMode('error');
+      };
       engine = j;
       j.p = last;
+      // Si se cambió de idioma mientras cargaba, los titulares 3D se ponen al día.
+      if (langChanged) void j.setLang();
       sticky.classList.add('is-ready');
       section.classList.add('has-3d-titles');
       // Salida de la precarga: el contador sube y la cortina se abre.
+      const jj = j;
       gsap.timeline({ delay: 0.5 })
         .to(pre.querySelectorAll('p, .j-pre-bar'), { yPercent: -60, opacity: 0, duration: 0.6, stagger: 0.05, ease: 'power3.in' })
         .to(pre, { clipPath: 'inset(0 0 100% 0)', duration: 1.1, ease: 'expo.inOut' }, '-=0.2')
-        .add(() => { pre.hidden = true; active = ''; update(last); j.startTitles(); });
+        .add(() => { pre.hidden = true; active = ''; update(last); jj.startTitles(); });
       const r = section.getBoundingClientRect();
       if (r.top < innerHeight && r.bottom > 0) j.start();
       if (location.search.includes('gl=force')) (window as unknown as { __journey: Journey }).__journey = j;
     } catch (err) {
       console.warn('[viaje]', err);
+      j?.dispose();
+      engine = null;
       staticMode('error');
     }
   })();

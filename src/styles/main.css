@@ -197,6 +197,8 @@ a { color: inherit; }
 @media (min-width: 901px) {
   .nav.in-journey:not(.solid) .nav-links > a:not(.btn), .nav.in-journey:not(.solid) .lang { opacity: 0; pointer-events: none; transform: translateY(-6px); }
   .nav .nav-links > a:not(.btn), .nav .lang { transition: opacity 0.4s, transform 0.4s; }
+  /* Con teclado, el menú vuelve a verse al llegar a él */
+  .nav.in-journey:not(.solid):focus-within .nav-links > a:not(.btn), .nav.in-journey:not(.solid):focus-within .lang { opacity: 1; pointer-events: auto; transform: none; }
 }
 /* Cursor acompañante */
 .cursor-ring {

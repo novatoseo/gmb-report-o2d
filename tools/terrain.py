@@ -44,7 +44,7 @@ def resize(a, w, h, mode=Image.BILINEAR):
     return np.asarray(Image.fromarray(a.astype(np.float32), 'F').resize((w, h), mode), np.float32)
 
 # —— Altura (16 bits) ——
-HW = 1024
+HW = 512  # la malla usa 511 segmentos: más resolución no se ve
 HH = round(HW * H / W)
 hmap = resize(elev, HW, HH, Image.LANCZOS)
 lo, hi = float(hmap.min()), float(hmap.max())

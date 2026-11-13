@@ -127,6 +127,15 @@ export class Ambience {
     if (!this.ctx) return;
     if (on) await this.ctx.resume();
     this.master.gain.setTargetAtTime(on ? 0.9 : 0, this.ctx.currentTime, 0.4);
+    // Apagado del todo tras el fundido: el contexto deja de consumir.
+    if (!on) setTimeout(() => { if (!this.on) void this.ctx?.suspend(); }, 1500);
+  }
+
+  /** Pausa el audio (y su consumo) al salir del viaje o con la pestaña oculta. */
+  pause(paused: boolean) {
+    if (!this.ctx) return;
+    if (paused) void this.ctx.suspend();
+    else if (this.on) void this.ctx.resume();
   }
 
   set(m: { alt: number; day: number; night: number; snow: number; speed: number }) {

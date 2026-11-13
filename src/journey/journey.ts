@@ -29,8 +29,8 @@ const PANEL_GRADE: Record<string, number> = { otono: 0.45, fachada: 0.32, atarde
 type Light = { p: number; sun: [number, number, number]; sunC: string; sky: string; ground: string; zenith: string; horizon: string; fog: string; night: number; snow: number; fall: number };
 // Una sola identidad: la hora azul. Lo cálido queda para las luces de las casas, la ruta y el final.
 const LIGHTS: Light[] = [
-  { p: 0.0, sun: [-0.75, 0.12, 0.35], sunC: '#a9b8e6', sky: '#6a7cb6', ground: '#2c3150', zenith: '#101c46', horizon: '#9a8db4', fog: '#7a7aa6', night: 0.3, snow: 0, fall: 0 },
-  { p: 0.55, sun: [-0.7, 0.16, 0.4], sunC: '#b4c0e8', sky: '#7084bc', ground: '#30365a', zenith: '#13214e', horizon: '#8d8bb8', fog: '#7378a6', night: 0.32, snow: 0, fall: 0 },
+  { p: 0.0, sun: [-0.75, 0.12, 0.35], sunC: '#a9b8e6', sky: '#5f70a8', ground: '#2a2f4c', zenith: '#0a1436', horizon: '#6d6a98', fog: '#5c5e8c', night: 0.4, snow: 0, fall: 0 },
+  { p: 0.55, sun: [-0.7, 0.16, 0.4], sunC: '#b4c0e8', sky: '#6a7cb4', ground: '#30365a', zenith: '#101c46', horizon: '#7c7aa8', fog: '#666a98', night: 0.35, snow: 0, fall: 0 },
   { p: 0.8, sun: [-0.6, 0.2, 0.5], sunC: '#9aa8d6', sky: '#6676aa', ground: '#3c4262', zenith: '#0d1838', horizon: '#6f77a6', fog: '#5e6894', night: 0.55, snow: 1, fall: 1 },
   { p: 0.92, sun: [-0.5, 0.12, 0.6], sunC: '#6c7cb0', sky: '#46558a', ground: '#232a44', zenith: '#070d26', horizon: '#3a4676', fog: '#283258', night: 0.9, snow: 0.85, fall: 0.5 },
   { p: 1.0, sun: [-0.5, 0.05, 0.6], sunC: '#3a4a7a', sky: '#283463', ground: '#10141f', zenith: '#050918', horizon: '#1f2850', fog: '#141a33', night: 1, snow: 0.7, fall: 0 },
@@ -46,13 +46,14 @@ const PAL = LIGHTS.map((l) => ({
   sunV: new THREE.Vector3(...l.sun).normalize(),
   c: { sunC: new THREE.Color(l.sunC), sky: new THREE.Color(l.sky), ground: new THREE.Color(l.ground), zenith: new THREE.Color(l.zenith), horizon: new THREE.Color(l.horizon), fog: new THREE.Color(l.fog) },
 }));
+const COLOR_KEYS = ['sunC', 'sky', 'ground', 'zenith', 'horizon', 'fog'] as const;
 function lightAt(p: number) {
   let i = 0;
   while (i < PAL.length - 2 && PAL[i + 1].p <= p) i++;
   const a = PAL[i], b = PAL[i + 1];
   const t = THREE.MathUtils.smoothstep(p, a.p, b.p);
   LOUT.sun.copy(a.sunV).lerp(b.sunV, t).normalize();
-  for (const k of ['sunC', 'sky', 'ground', 'zenith', 'horizon', 'fog'] as const) LOUT[k].copy(a.c[k]).lerp(b.c[k], t);
+  for (const k of COLOR_KEYS) LOUT[k].copy(a.c[k]).lerp(b.c[k], t);
   LOUT.night = THREE.MathUtils.lerp(a.night, b.night, t);
   LOUT.snow = THREE.MathUtils.lerp(a.snow, b.snow, t);
   LOUT.fall = THREE.MathUtils.lerp(a.fall, b.fall, t);
@@ -97,6 +98,14 @@ export class Journey {
   p = 0;
   private shown = 0;
   private running = false;
+  private raf = 0;
+  private lost = false;
+  private quality = 2;
+  private frames = 0;
+  private slowFrames = 0;
+  private lastNow = 0;
+  /** Se llama si el navegador pierde el contexto WebGL. */
+  onLost?: () => void;
   onHud?: (h: { lat: number; lon: number; alt: number; p: number }) => void;
   /** Estado para el sonido ambiente: altitud (km), día, noche y nieve (0–1). */
   onMix?: (m: { alt: number; day: number; night: number; snow: number; speed: number }) => void;
@@ -116,13 +125,19 @@ export class Journey {
   private unitIds = ['maelo', 'brana', 'teleno'] as const;
 
   constructor(readonly host: HTMLElement, private reduced: boolean) {
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+    this.renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, innerWidth < 800 ? 1.5 : 1.75));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.0;
     this.renderer.domElement.className = 'journey-canvas';
     host.prepend(this.renderer.domElement);
+    this.renderer.domElement.addEventListener('webglcontextlost', (e) => {
+      e.preventDefault();
+      this.lost = true;
+      this.stop();
+      this.onLost?.();
+    });
   }
 
   isSoftware() {
@@ -368,7 +383,8 @@ export class Journey {
 
   private async loadPanel(pnl: Panel) {
     if (pnl.loaded) return;
-    const big = Math.max(innerWidth, innerHeight) * Math.min(devicePixelRatio, 2) > 1500;
+    // En móvil basta la de 1200 px (la foto ocupa una pantalla estrecha); 1920 solo en pantallas grandes.
+    const big = Math.min(innerWidth, innerHeight) >= 700 && innerWidth * Math.min(devicePixelRatio, 1.5) > 1500;
     const loader = new THREE.TextureLoader();
     const [map, aux] = await Promise.all([
       loader.loadAsync(asset(`live/${pnl.name}-${big ? 1920 : 1200}.webp`)),
@@ -482,18 +498,47 @@ export class Journey {
   }
 
   start() {
-    if (this.running) return;
+    if (this.running || this.lost) return;
     this.running = true;
-    const loop = () => {
+    const loop = (now: number) => {
+      this.raf = 0;
       if (!this.running) return;
+      this.adapt(now);
       this.frame();
-      requestAnimationFrame(loop);
+      this.raf = requestAnimationFrame(loop);
     };
-    loop();
+    this.raf = requestAnimationFrame(loop);
   }
 
   stop() {
     this.running = false;
+    if (this.raf) cancelAnimationFrame(this.raf);
+    this.raf = 0;
+  }
+
+  /** Calidad automática: si el dispositivo no llega, baja la resolución y luego quita el bloom. */
+  private adapt(now: number) {
+    if (this.lastNow) {
+      const dt = now - this.lastNow;
+      this.slowFrames += dt > 28 ? 1 : 0;
+      if (++this.frames >= 60) {
+        if (this.slowFrames > 25 && this.quality > 0) {
+          this.quality--;
+          const base = Math.min(devicePixelRatio, innerWidth < 800 ? 1.5 : 1.75);
+          this.renderer.setPixelRatio(base * [0.55, 0.75, 1][this.quality]);
+          if (this.quality === 0) this.post?.setBloom(false);
+          this.resize();
+        }
+        this.frames = this.slowFrames = 0;
+      }
+    }
+    this.lastNow = now;
+  }
+
+  dispose() {
+    this.stop();
+    this.renderer.dispose();
+    this.renderer.domElement.remove();
   }
 
   frame() {
@@ -568,7 +613,7 @@ export class Journey {
       s.position.x += 0.05 * dt;
       const m = s.material as THREE.SpriteMaterial;
       m.opacity = 0.75 * cloudOp;
-      m.color.copy(L.horizon).lerp(this.white, 0.55);
+      m.color.copy(L.horizon).lerp(this.white, 0.3);
     }
 
     // Fotos 3D
