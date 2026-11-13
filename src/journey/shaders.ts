@@ -153,7 +153,7 @@ void main() {
 }`;
 
 export const SNOW_VERT = /* glsl */ `
-uniform float uTime, uSize;
+uniform float uTime, uSize, uMax;
 uniform vec3 uCam;
 attribute float aSeed;
 varying float vA;
@@ -165,8 +165,9 @@ void main() {
   p = mod(p - uCam + box * 0.5, box) - box * 0.5 + uCam;
   vec4 mv = viewMatrix * vec4(p, 1.0);
   gl_Position = projectionMatrix * mv;
-  gl_PointSize = min(uSize * (0.6 + aSeed) / -mv.z, 48.0);
-  vA = smoothstep(4.5, 0.4, -mv.z);
+  // Copos pequeños y nítidos: los que pasan pegados a la cámara se desvanecen en vez de verse como manchas.
+  gl_PointSize = min(uSize * (0.6 + aSeed) / -mv.z, uMax);
+  vA = smoothstep(4.5, 0.4, -mv.z) * smoothstep(0.35, 1.0, -mv.z);
 }`;
 
 export const SNOW_FRAG = /* glsl */ `
@@ -174,7 +175,7 @@ uniform float uOpacity;
 varying float vA;
 void main() {
   float d = length(gl_PointCoord - 0.5);
-  float a = smoothstep(0.5, 0.1, d) * vA * uOpacity;
+  float a = smoothstep(0.5, 0.28, d) * vA * uOpacity;
   if (a < 0.01) discard;
   gl_FragColor = vec4(vec3(1.0), a);
 }`;

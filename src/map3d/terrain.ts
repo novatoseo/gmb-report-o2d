@@ -61,16 +61,16 @@ export class Terrain3D {
     this.scene.add(ground);
 
     // Suelo lejano para que los bordes se pierdan en la bruma
-    const base = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.MeshBasicMaterial({ color: 0xcfd8d2 }));
+    const base = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.MeshBasicMaterial({ color: 0x2a3058 }));
     base.rotateX(-Math.PI / 2);
     base.position.y = (meta.elevMin / 1000) * EXAG - 0.1;
     this.scene.add(base);
 
-    // Luz de media tarde desde el suroeste y cielo
-    const sun = new THREE.DirectionalLight(0xfff0d8, 2.6);
-    sun.position.set(-30, 26, 22);
-    this.scene.add(sun, new THREE.HemisphereLight(0xc6daef, 0x4b4a36, 1.0));
-    this.scene.fog = new THREE.Fog(0xdde6ea, 14, 58);
+    // Hora azul, como el viaje: sol bajo y frío por el oeste, cielo pervinca y bruma azulada.
+    const sun = new THREE.DirectionalLight(0xc4ccec, 2.2);
+    sun.position.set(-34, 14, 18);
+    this.scene.add(sun, new THREE.HemisphereLight(0x8a98cc, 0x232842, 1.25));
+    this.scene.fog = new THREE.Fog(0x2f3766, 16, 60);
 
     // La casa: punto de luz y haz vertical
     const home = this.world(...this.uv(42.88939, -5.58106));
@@ -240,7 +240,7 @@ export class Terrain3D {
     if (!pts) return null;
     let mesh = this.trails.get(key);
     if (!mesh) {
-      mesh = this.tube(pts.map(([u, v]) => this.world(u, v, LIFT)), 0xff7a2f, 0.016);
+      mesh = this.tube(pts.map(([u, v]) => this.world(u, v, LIFT)), 0xf2b544, 0.016);
       this.trails.set(key, mesh);
     }
     this.trails.forEach((m, k) => (m.visible = k === key));
@@ -261,7 +261,7 @@ export class Terrain3D {
       const t = i / n;
       pts.push(this.world(from[0] + (u1 - from[0]) * t, from[1] + (v1 - from[1]) * t, LIFT * 1.6));
     }
-    this.route = this.tube(pts, 0xffffff, 0.012);
+    this.route = this.tube(pts, 0xece9e2, 0.012);
     this.reveal(this.route);
     return pts[n];
   }

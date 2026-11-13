@@ -32,7 +32,7 @@ initJourney(reduced);
 initHouses(reduced);
 initMap(reduced);
 initGallery(reduced);
-initReviews(reduced);
+initReviews();
 initFx(reduced);
 initNav();
 renderContact();

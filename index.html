@@ -79,32 +79,31 @@
     </section>
 
     <!-- 2 · HISTORIA -->
-    <section class="story paper" id="historia" aria-labelledby="story-title">
+    <section class="story" id="historia" aria-labelledby="story-title">
       <div class="wrap story-grid">
         <div class="story-text">
-          <p class="eyebrow" data-i18n="storyEyebrow">Nuestra historia</p>
+          <p class="eyebrow sec" data-i18n="storyEyebrow">Nuestra historia</p>
           <h2 id="story-title" class="h2" data-split data-i18n="storyTitle">Hola, somos Manuel y Valeria.</h2>
           <p class="body-lg" data-reveal data-i18n="storyText">Después de andar un largo camino juntos, decidimos dar un gran cambio a nuestras vidas. Buscábamos naturaleza, tranquilidad, buena mesa y buena gente, y lo encontramos aquí, en plena montaña central de León. Cada espacio y cada detalle está pensado con cariño. Esperamos que os guste tanto como a nosotros.</p>
-          <p class="signature" data-reveal>Manuel &amp; Valeria</p>
+          <p class="sign" data-reveal>— <span data-i18n="hosts">Manuel y Valeria, anfitriones</span></p>
         </div>
         <div class="story-photos" aria-hidden="true">
-          <figure class="polaroid p1" data-tilt="-6"><img src="/photos/hero/slide-03.webp" alt="" loading="lazy" width="1920" height="1086" /></figure>
-          <figure class="polaroid p2" data-tilt="5"><img src="/photos/brana/salon-ventanal.webp" alt="" loading="lazy" width="1920" height="1080" /></figure>
-          <svg class="doodle" viewBox="0 0 120 60"><path d="M4 50 C30 10 60 60 116 8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="6 8"/><path d="M104 6 l12 2 l-4 11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+          <figure class="ph ph-1" data-reveal><img src="/photos/hero/slide-03.webp" alt="" loading="lazy" width="1920" height="1086" /><figcaption>42.889° N · 5.581° W</figcaption></figure>
+          <figure class="ph ph-2" data-reveal><img src="/photos/brana/salon-ventanal.webp" alt="" loading="lazy" width="1920" height="1080" /></figure>
         </div>
       </div>
       <ul class="wrap stats">
         <li><strong data-count="3">3</strong><span data-i18n="statHouses">casas de diseño</span></li>
-        <li><strong data-count="100" data-suffix="%">100%</strong><span data-i18n="statFloor">suelo radiante</span></li>
-        <li><strong>∞</strong><span data-i18n="statSilence">silencio de montaña</span></li>
+        <li><strong data-count="35">35</strong><span data-i18n="statDrive">minutos desde León</span></li>
         <li><strong data-count="5" data-decimals="1">5,0</strong><span data-i18n="statGoogle">en Google · 44 reseñas</span></li>
+        <li><strong data-count="10">10</strong><span data-i18n="statBooking">«Excepcional» en Booking.com</span></li>
       </ul>
     </section>
 
     <!-- 4 · LAS CASAS -->
-    <section class="houses paper" id="casas" aria-labelledby="houses-title">
+    <section class="houses" id="casas" aria-labelledby="houses-title">
       <div class="wrap section-head">
-        <p class="eyebrow" data-i18n="housesEyebrow">Las casas</p>
+        <p class="eyebrow sec" data-i18n="housesEyebrow">Las casas</p>
         <h2 id="houses-title" class="h2" data-split data-i18n="housesTitle">Un edificio, tres caracteres.</h2>
         <p class="body-lg" data-reveal data-i18n="housesLead">Maelo, Braña y Teleno comparten arquitectura y entorno. Toca una ventana para entrar.</p>
       </div>
@@ -116,7 +115,7 @@
     <!-- 5 · MAPA -->
     <section class="map-sec" id="entorno" aria-labelledby="map-title">
       <div class="wrap section-head">
-        <p class="eyebrow" data-i18n="mapEyebrow">Alrededor</p>
+        <p class="eyebrow sec" data-i18n="mapEyebrow">Alrededor</p>
         <h2 id="map-title" class="h2" data-split data-i18n="mapTitle">Todo el valle, desde la puerta.</h2>
         <p class="body-lg" data-reveal data-i18n="mapLead">Cuevas, hayedos, desfiladeros, nieve y buena mesa. Elige un sitio y te trazamos el camino.</p>
       </div>
@@ -130,28 +129,19 @@
     </section>
 
     <!-- 6 · ESTACIONES -->
-    <section class="gallery paper" id="estaciones" aria-labelledby="gallery-title">
-      <div class="wrap section-head row">
-        <div>
-          <p class="eyebrow" data-i18n="galleryEyebrow">Cuatro estaciones</p>
-          <h2 id="gallery-title" class="h2" data-split data-i18n="galleryTitle">Mismo sitio. Otra estación.</h2>
-          <p class="body-lg" data-reveal data-i18n="galleryLead">Ninguna foto está tomada lejos: es el valle que se ve desde la puerta. Lo que cambia es la estación.</p>
-        </div>
-        <div class="gallery-ctrl">
-          <div class="chips" id="season-chips" role="group"></div>
-          <div class="arrows">
-            <button type="button" class="round" id="g-prev" data-i18n-attr="aria-label:prev">←</button>
-            <button type="button" class="round" id="g-next" data-i18n-attr="aria-label:next">→</button>
-          </div>
-        </div>
+    <section class="gallery" id="estaciones" aria-labelledby="gallery-title">
+      <div class="wrap section-head">
+        <p class="eyebrow sec" data-i18n="galleryEyebrow">Otoño e invierno</p>
+        <h2 id="gallery-title" class="h2" data-split data-i18n="galleryTitle">Mismo sitio. Otra estación.</h2>
+        <p class="body-lg" data-reveal data-i18n="galleryLead">Ninguna foto está tomada lejos: es el valle que se ve desde la puerta. Lo que cambia es la estación.</p>
       </div>
-      <div class="strip" id="strip" data-lenis-prevent-horizontal></div>
+      <div class="wrap strip" id="strip"></div>
     </section>
 
     <!-- 7 · OPINIONES -->
     <section class="reviews" id="opiniones" aria-labelledby="reviews-title">
       <div class="wrap section-head center">
-        <p class="eyebrow" data-i18n="reviewsEyebrow">Opiniones</p>
+        <p class="eyebrow sec" data-i18n="reviewsEyebrow">Opiniones</p>
         <h2 id="reviews-title" class="h2" data-split data-i18n="reviewsTitle">Lo que dicen al irse.</h2>
         <div class="badges" data-reveal>
           <a href="https://www.google.com/search?q=La+Finca+del+Valle+Vegacervera" target="_blank" rel="noopener"><span class="stars" aria-hidden="true">★★★★★</span> <span data-i18n="reviewsBadge1">5,0 en Google · 44 reseñas</span></a>
@@ -162,9 +152,9 @@
     </section>
 
     <!-- 8 · RESERVA -->
-    <section class="book paper" id="reservar" aria-labelledby="book-title">
+    <section class="book" id="reservar" aria-labelledby="book-title">
       <div class="wrap section-head">
-        <p class="eyebrow" data-i18n="bookEyebrow">Reservar</p>
+        <p class="eyebrow sec" data-i18n="bookEyebrow">Reservar</p>
         <h2 id="book-title" class="h2" data-split data-i18n="bookTitle">Tu refugio te espera.</h2>
         <p class="body-lg" data-reveal data-i18n="bookLead">Elige casa, fechas y huéspedes. Te calculamos una estimación y te llevamos al motor de reservas con el 35 % de descuento web.</p>
       </div>
@@ -198,7 +188,6 @@
   </main>
 
   <footer class="footer" id="contacto">
-    <svg class="footer-ridge" viewBox="0 0 1600 160" preserveAspectRatio="none" aria-hidden="true"><path d="M0 160 L0 90 L120 60 L200 84 L300 20 L380 70 L470 40 L560 96 L700 30 L780 70 L880 14 L990 80 L1100 40 L1210 92 L1330 34 L1440 86 L1600 50 L1600 160Z"/></svg>
     <div class="wrap footer-grid">
       <div>
         <p class="footer-brand">La Finca <em>del Valle</em></p>

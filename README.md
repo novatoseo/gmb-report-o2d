@@ -40,6 +40,10 @@ Para forzar WebGL en pruebas: `?gl=force`.
 
 **Ajustes de intensidad:** con `?ajustes` en la URL aparece un panel con deslizadores para el movimiento 3D, la noche, la nieve, la niebla, las nubes y el halo de las luces. Los cambios se ven en directo y se recuerdan en ese navegador. «Copiar valores» deja los números listos para fijarlos en `src/live/tuning.ts`.
 
+## Identidad visual
+
+Toda la página comparte la «hora azul» del viaje: fondo azul noche, texto crema y un único acento dorado (el de las ventanas encendidas). Titulares en Fraunces, texto en Figtree y datos, antetítulos y etiquetas en JetBrains Mono, como el HUD del viaje. Las secciones van numeradas (02 / … 07 /), separadas por líneas finas, y las fotos llevan el mismo tono. El mapa 3D usa la misma luz que el viaje. Los tokens están al principio de `src/styles/main.css`.
+
 ## Stack
 
 - Vite + TypeScript, sin framework.

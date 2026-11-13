@@ -47,7 +47,7 @@ export function initBooking() {
       <label class="pick ${h.id === state.house ? 'is-on' : ''}">
         <input type="radio" name="house" value="${h.id}" ${h.id === state.house ? 'checked' : ''} />
         ${gable}
-        <span><b>${h.name}</b><small>${h.area} m² · ${t('from')} ${h.priceFrom} €</small></span>
+        <span><b>${h.name}</b><small>${h.area} m²</small><small>${t('from')} ${h.priceFrom} €</small></span>
       </label>`).join('');
   };
 

@@ -33,15 +33,6 @@ export function initFx(reduced: boolean) {
       once: true,
       onEnter: (els) => gsap.fromTo(els, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9, stagger: 0.1, ease: 'power3.out', overwrite: true }),
     });
-    gsap.utils.toArray<HTMLElement>('[data-tilt]').forEach((el) => {
-      const r = Number(el.dataset.tilt);
-      gsap.fromTo(el, { rotate: r * 2.4, y: 80, opacity: 0 }, {
-        rotate: r, y: 0, opacity: 1, duration: 1.3, ease: 'elastic.out(1, 0.6)',
-        scrollTrigger: { trigger: el, start: 'top 85%', once: true },
-      });
-      gsap.to(el, { y: -40 * Math.sign(r), ease: 'none', scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: true } });
-    });
-    gsap.from('.story .doodle path', { strokeDashoffset: 200, duration: 1.5, scrollTrigger: { trigger: '.story', start: 'top 60%', once: true } });
   }
   onLang(resplit);
 

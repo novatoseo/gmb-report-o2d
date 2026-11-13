@@ -4,15 +4,16 @@
 export function initCursor(reduced: boolean) {
   if (reduced || !matchMedia('(hover: hover) and (pointer: fine)').matches) return;
   const ring = document.createElement('div');
-  ring.className = 'cursor-ring';
+  ring.className = 'cursor-ring is-out'; // oculto hasta que se mueva el ratón
   ring.setAttribute('aria-hidden', 'true');
   document.body.append(ring);
   let x = -100, y = -100, tx = -100, ty = -100;
   let raf = 0;
   addEventListener('pointermove', (e) => {
+    if (!e.clientX && !e.clientY) return; // eventos sintéticos en la esquina (0, 0)
     tx = e.clientX;
     ty = e.clientY;
-    if (x < -50) { x = tx; y = ty; } // primera vez: sin vuelo desde la esquina
+    if (x < -50) { x = tx; y = ty; ring.classList.remove('is-out'); } // primera vez: aparece donde está el puntero
     if (!raf) raf = requestAnimationFrame(loop);
     const hot = (e.target as Element).closest?.('a, button, input, label, summary, .pin');
     ring.classList.toggle('is-hot', !!hot);

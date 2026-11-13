@@ -241,6 +241,13 @@ export class Journey {
       g.fillStyle = gr;
       g.fillRect(0, 0, 128, 128);
     }
+    // Borde suave: sin esto, los manchones que tocan el borde dejan un rectángulo visible en la niebla.
+    g.globalCompositeOperation = 'destination-in';
+    const mask = g.createRadialGradient(64, 64, 20, 64, 64, 63);
+    mask.addColorStop(0, 'rgba(0,0,0,1)');
+    mask.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = mask;
+    g.fillRect(0, 0, 128, 128);
     const tex = new THREE.CanvasTexture(cv);
     const rnd = (a: number, b: number) => a + Math.random() * (b - a);
     for (let i = 0; i < 46; i++) {
@@ -270,7 +277,7 @@ export class Journey {
       fragmentShader: SNOW_FRAG,
       transparent: true,
       depthWrite: false,
-      uniforms: { uTime: { value: 0 }, uSize: { value: 26 * this.renderer.getPixelRatio() }, uCam: { value: new THREE.Vector3() }, uOpacity: { value: 0 } },
+      uniforms: { uTime: { value: 0 }, uSize: { value: 14 * this.renderer.getPixelRatio() }, uMax: { value: 7 * this.renderer.getPixelRatio() }, uCam: { value: new THREE.Vector3() }, uOpacity: { value: 0 } },
     }));
     this.snow.frustumCulled = false;
     this.scene.add(this.snow);

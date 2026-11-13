@@ -368,8 +368,9 @@ export const UI = {
     en: 'After a long road together, we decided to change our lives. We were looking for nature, quiet, good food and good people, and we found it here, in the heart of León’s central mountains. Every space and detail was made with care. We hope you love it as much as we do.',
   },
   statHouses: { es: 'casas de diseño', en: 'design houses' },
-  statFloor: { es: 'suelo radiante', en: 'underfloor heating' },
-  statSilence: { es: 'silencio de montaña', en: 'mountain silence' },
+  statDrive: { es: 'minutos desde León', en: 'minutes from León' },
+  statBooking: { es: '«Excepcional» en Booking.com', en: '“Exceptional” on Booking.com' },
+  hosts: { es: 'Manuel y Valeria, anfitriones', en: 'Manuel & Valeria, your hosts' },
   statGoogle: { es: 'en Google · 44 reseñas', en: 'on Google · 44 reviews' },
 
   dayEyebrow: { es: 'Un día en la finca', en: 'A day at the finca' },
@@ -412,7 +413,7 @@ export const UI = {
   mapCredit: { es: 'Relieve: Terrain Tiles (AWS Open Data / Mapzen) · Rutas GPX: La Finca del Valle', en: 'Relief: Terrain Tiles (AWS Open Data / Mapzen) · GPX trails: La Finca del Valle' },
   mapNoGL: { es: 'Tu navegador no puede mostrar el mapa 3D. Aquí tienes los lugares:', en: 'Your browser can’t show the 3D map. Here are the places:' },
 
-  galleryEyebrow: { es: 'Cuatro estaciones', en: 'Four seasons' },
+  galleryEyebrow: { es: 'Otoño e invierno', en: 'Autumn and winter' },
   galleryTitle: { es: 'Mismo sitio. Otra estación.', en: 'Same place. Another season.' },
   galleryLead: {
     es: 'Ninguna foto está tomada lejos: es el valle que se ve desde la puerta. Lo que cambia es la estación.',
