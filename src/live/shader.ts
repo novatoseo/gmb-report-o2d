@@ -61,14 +61,14 @@ vec2 parallax(sampler2D aux, vec2 uv, vec4 P, vec4 cam) {
   return clamp(p, vec2(0.001), vec2(0.999));
 }
 
-float snowLayer(vec2 uv, float scale, float speed, float t, float size) {
+float snowLayer(vec2 uv, float scale, float speed, float t, float size, float dens) {
   uv *= scale;
   uv.y += t * speed;
   uv.x += sin(uv.y * 0.35 + t * 0.6) * 0.35;
   vec2 id = floor(uv);
   vec2 f = fract(uv) - 0.5;
   float h = hash(id);
-  if (h < 0.45) return 0.0;
+  if (h < 1.0 - 0.55 * dens) return 0.0;
   vec2 c = vec2(hash(id + 3.1), hash(id + 7.7)) - 0.5;
   float r = size * mix(0.5, 1.0, hash(id + 1.9));
   return smoothstep(r, r * 0.25, length(f - c * 0.7));
@@ -144,10 +144,11 @@ vec3 shade(sampler2D col, sampler2D aux, float asp, vec4 P, vec4 F, vec4 S, vec4
   if (F.x > 0.0) {
     vec2 s = vUv * vec2(uView.x / uView.y, 1.0);
     float fl = 0.0;
-    fl += snowLayer(s + uPointer * 0.010, 16.0, 0.9, t, 0.09) * 0.5;
-    fl += snowLayer(s + uPointer * 0.025, 10.0, 1.3, t + 13.0, 0.09) * 0.75;
-    fl += snowLayer(s + uPointer * 0.050, 6.0, 1.9, t + 31.0, 0.08);
-    c = mix(c, vec3(1.0), clamp(fl, 0.0, 1.0) * F.x * 0.9);
+    float dens = clamp(F.x, 0.0, 1.8);
+    fl += snowLayer(s + uPointer * 0.010, 16.0, 0.9, t, 0.09, dens) * 0.5;
+    fl += snowLayer(s + uPointer * 0.025, 10.0, 1.3, t + 13.0, 0.09, dens) * 0.75;
+    fl += snowLayer(s + uPointer * 0.050, 6.0, 1.9, t + 31.0, 0.08, dens);
+    c = mix(c, vec3(1.0), clamp(fl, 0.0, 1.0) * min(F.x, 1.0) * 0.9);
   }
 
   // Resaltado de una zona (las casas): el resto se atenúa.

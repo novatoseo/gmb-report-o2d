@@ -15,6 +15,7 @@ import { initHouses } from './sections/houses';
 import { initMap } from './sections/map';
 import { initGallery, initReviews } from './sections/gallery';
 import { initBooking } from './sections/booking';
+import { initTuningPanel } from './live/tuning';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -34,6 +35,7 @@ initReviews(reduced);
 initFx(reduced);
 initNav();
 renderContact();
+initTuningPanel();
 
 addEventListener('load', () => ScrollTrigger.refresh());
 document.fonts?.ready.then(() => ScrollTrigger.refresh());

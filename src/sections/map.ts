@@ -1,86 +1,41 @@
 import { gsap } from 'gsap';
-import { CATS, FINCA_XY, PLACES, type Cat, type Place } from '../content';
+import type { Vector3 } from 'three';
+import { CATS, FINCA, PLACES, type Cat, type Place } from '../content';
 import { onLang, t, tr } from '../i18n';
+import type { Terrain3D } from '../map3d/terrain';
 
 const ICONS: Record<Cat, string> = {
+  trail: '<path d="M7 21l3-8 3 3 4-11M5 8l2-2 2 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
   nature: '<path d="M12 3c5 3 7 7 5 11-1.5 3-5 4-5 7M12 21c0-3-3.5-4-5-7-2-4 0-8 5-11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
   adventure: '<path d="M3 19l6-10 4 6 2-3 6 7z" fill="currentColor"/>',
   snow: '<path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
   food: '<path d="M7 3v8M5 3v5a2 2 0 004 0V3M7 11v10M16 3c-2 2-2 6 0 8v10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
   arrive: '<rect x="6" y="4" width="12" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 20l2-3M16 20l-2-3M6 11h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
 };
-
 const color = (c: Cat) => CATS.find((x) => x.id === c)!.color;
-
-function mountains() {
-  // Cordillera al norte y sierras sueltas: pequeños picos de caliza dibujados a mano.
-  const peaks: [number, number, number][] = [
-    [60, 170, 1.2], [110, 150, 0.9], [190, 175, 1.1], [260, 140, 1.3], [330, 165, 1], [400, 130, 1.4], [460, 160, 1],
-    [540, 140, 1.2], [610, 160, 1], [680, 135, 1.3], [840, 150, 1.1], [900, 170, 0.9], [80, 260, 0.8], [360, 240, 0.9],
-    [580, 220, 1], [700, 250, 0.9], [860, 300, 0.8], [130, 360, 0.8], [600, 380, 0.9], [380, 330, 0.9], [740, 380, 0.8],
-    [300, 520, 0.7], [640, 560, 0.7], [860, 540, 0.8], [150, 600, 0.7],
-  ];
-  return peaks.map(([x, y, s]) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M-26 14 L-6 -18 L2 -6 L10 -14 L28 14Z" class="mt"/><path d="M-6 -18 L-12 -2 L-4 4 L2 -6Z" class="mt-hi"/><path d="M-12 -8 l4 -2 M14 -4 l4 -2" class="mt-snow"/></g>`).join('');
-}
-
-function forests() {
-  const spots: [number, number][] = [
-    [280, 410], [320, 440], [300, 395], [240, 450], [270, 300], [210, 320], [560, 300], [540, 420], [420, 300], [660, 430],
-    [700, 320], [820, 410], [380, 560], [600, 620], [200, 540], [880, 380], [120, 450], [760, 600],
-  ];
-  return spots.map(([x, y]) => `<g class="tree"><circle cx="${x}" cy="${y}" r="9"/><circle cx="${x + 11}" cy="${y + 4}" r="7"/><circle cx="${x - 9}" cy="${y + 5}" r="6"/></g>`).join('');
-}
-
-function mapSVG() {
-  return `
-  <svg class="map-svg" viewBox="0 0 1000 750" role="img" aria-label="Mapa ilustrado del entorno de La Finca del Valle" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <pattern id="paper" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".6" fill="#000" opacity=".05"/></pattern>
-      <mask id="route-mask"><path id="route-reveal" d="" fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round"/></mask>
-    </defs>
-    <rect width="1000" height="750" rx="28" class="land"/>
-    <rect width="1000" height="750" rx="28" fill="url(#paper)"/>
-    <path class="biosphere" d="M330 210 C420 180 590 190 660 250 C720 300 700 430 620 490 C540 540 400 530 330 480 C260 430 250 260 330 210Z"/>
-    <text class="label biosphere-label"><textPath href="#bio-path" startOffset="8%">Reserva de la Biosfera de los Argüellos</textPath></text>
-    <path id="bio-path" d="M335 200 C420 170 590 180 660 240" fill="none"/>
-    <g class="forest">${forests()}</g>
-    <g class="mts">${mountains()}</g>
-    <!-- ríos -->
-    <path class="river" d="M480 40 C470 140 520 220 495 300 C470 380 450 430 470 520 C490 600 470 680 470 760"/>
-    <path class="river" d="M150 40 C170 140 210 240 200 340 C190 450 260 560 330 640 C380 700 430 730 450 760"/>
-    <path class="river" d="M790 120 C770 220 800 330 780 420 C760 520 740 640 720 760"/>
-    <path class="lake" d="M880 190 C910 170 960 180 975 205 C990 235 960 250 935 245 C915 262 890 250 892 232 C870 228 864 205 880 190Z"/>
-    <path class="lake" d="M760 470 c18 -14 46 -8 50 10 c4 18 -20 30 -38 24 c-18 -4 -26 -22 -12 -34z"/>
-    <!-- carreteras -->
-    <path class="road" d="M470 740 C480 650 500 590 505 560 C510 520 480 470 470 ${FINCA_XY.y}"/>
-    <path class="road" d="M455 740 C380 640 260 560 200 470 C160 380 150 250 140 105"/>
-    <path class="road thin" d="M${FINCA_XY.x} ${FINCA_XY.y} C${FINCA_XY.x + 20} 340 500 300 505 268"/>
-    <text class="label river-label" x="512" y="200" transform="rotate(80 512 200)">Río Torío</text>
-    <text class="label river-label" x="205" y="250" transform="rotate(78 205 250)">Río Bernesga</text>
-    <text class="label river-label" x="796" y="300" transform="rotate(84 796 300)">Río Porma</text>
-    <text class="label region" x="40" y="58">ASTURIAS ↑</text>
-    <text class="label region scale-note" x="972" y="728" text-anchor="end"></text>
-    <g class="compass" transform="translate(920 640)"><circle r="30"/><path d="M0 -24 L7 0 L0 24 L-7 0Z"/><path d="M0 -24 L7 0 L-7 0Z" class="n"/><text y="-34" text-anchor="middle">N</text></g>
-    <path class="route" d="" mask="url(#route-mask)"/>
-    <g class="home" transform="translate(${FINCA_XY.x} ${FINCA_XY.y})">
-      <circle class="pulse" r="26"/>
-      <circle r="24" class="home-bg"/>
-      <path d="M-15 10V-1L-8 -8L-1 -1V10M-1 10V-3H3V10M3 10V-1L10 -8L17 -1V10" transform="translate(-1 0)" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/>
-    </g>
-  </svg>`;
-}
+const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 
 export function initMap(reduced: boolean) {
   const map = document.getElementById('map')!;
   const chips = document.getElementById('map-chips')!;
   const card = document.getElementById('map-card')!;
-  map.innerHTML = mapSVG() + '<div class="pins" id="pins"></div>';
-  const pins = map.querySelector<HTMLElement>('#pins')!;
-  const route = map.querySelector<SVGPathElement>('.route')!;
-  const reveal = map.querySelector<SVGPathElement>('#route-reveal')!;
-
   let filter: Cat | 'all' = 'all';
   let selected: Place | null = null;
+  let engine: Terrain3D | null = null;
+  const anchors = new Map<string, Vector3>();
+  let home: Vector3 | null = null;
+
+  map.innerHTML = `
+    <div class="pins" id="pins"></div>
+    <div class="map-ui">
+      <button type="button" class="round" data-zoom="0.7"></button>
+      <button type="button" class="round" data-zoom="1.4"></button>
+      <button type="button" class="round map-home" data-reset></button>
+    </div>
+    <p class="map-hint"></p>
+    <p class="map-credit"></p>
+    <div class="map-loading" aria-hidden="true"><span></span></div>`;
+  const pins = map.querySelector<HTMLElement>('#pins')!;
 
   const renderChips = () => {
     chips.setAttribute('aria-label', t('mapEyebrow'));
@@ -89,20 +44,32 @@ export function initMap(reduced: boolean) {
 
   const renderPins = () => {
     pins.innerHTML = PLACES.map((p) => `
-      <button type="button" class="pin ${selected?.id === p.id ? 'is-on' : ''} ${filter !== 'all' && filter !== p.cat ? 'is-dim' : ''}" data-id="${p.id}"
-        style="left:${p.x / 10}%;top:${p.y / 7.5}%;--c:${color(p.cat)}" aria-pressed="${selected?.id === p.id}">
+      <button type="button" class="pin ${selected?.id === p.id ? 'is-on' : ''} ${filter !== 'all' && filter !== p.cat ? 'is-dim' : ''}" data-id="${p.id}" style="--c:${color(p.cat)}" aria-pressed="${selected?.id === p.id}">
         <svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[p.cat]}</svg>
         <span class="pin-label">${p.name}</span>
-      </button>`).join('') +
-      `<span class="home-label" style="left:${FINCA_XY.x / 10}%;top:${FINCA_XY.y / 7.5}%">${t('mapHome')}</span>`;
+      </button>`).join('') + `<span class="home-label"><i></i>${t('mapHome')}</span>`;
+    place();
+  };
+
+  const renderUi = () => {
+    const [zin, zout, reset] = map.querySelectorAll<HTMLButtonElement>('.map-ui button');
+    zin.textContent = '+';
+    zin.setAttribute('aria-label', t('zoomIn'));
+    zout.textContent = '−';
+    zout.setAttribute('aria-label', t('zoomOut'));
+    reset.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z" fill="currentColor"/></svg>';
+    reset.setAttribute('aria-label', t('mapReset'));
+    reset.title = t('mapReset');
+    map.querySelector('.map-hint')!.textContent = matchMedia('(hover: none)').matches ? t('mapHintTouch') : t('mapHint');
+    map.querySelector('.map-credit')!.textContent = t('mapCredit');
   };
 
   const renderCard = () => {
     if (!selected) {
       card.innerHTML = `
         <div class="mc-empty">
-          <svg viewBox="0 0 80 60" aria-hidden="true"><path d="M10 50 C20 20 40 40 50 18 S70 10 72 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="5 7" stroke-linecap="round"/><circle cx="10" cy="50" r="5" fill="currentColor"/><path d="M72 0 l5 9 h-10z" fill="currentColor"/></svg>
           <p class="h3">${t('mapPick')}</p>
+          ${map.classList.contains('no-gl') ? `<p class="fine">${t('mapNoGL')}</p>` : ''}
           <ul class="mc-list">${PLACES.filter((p) => filter === 'all' || p.cat === filter).map((p) => `<li><button type="button" data-id="${p.id}" style="--c:${color(p.cat)}"><i></i>${p.name}<small>${tr(p.meta)}</small></button></li>`).join('')}</ul>
         </div>`;
       return;
@@ -120,45 +87,100 @@ export function initMap(reduced: boolean) {
           <button type="button" class="btn btn-link" data-back>← ${t('mapPick')}</button>
         </div>
       </article>`;
+    if (!reduced) gsap.from(card.querySelectorAll('.mc-body > *, .mc-photo'), { y: 16, opacity: 0, stagger: 0.05, duration: 0.45, ease: 'power2.out' });
   };
 
-  const drawRoute = (p: Place | null) => {
-    if (!p) {
-      route.setAttribute('d', '');
-      reveal.setAttribute('d', '');
-      return;
+  // Coloca los pines HTML sobre el mapa 3D.
+  const place = () => {
+    if (!engine) return;
+    const r = map.getBoundingClientRect();
+    pins.querySelectorAll<HTMLElement>('.pin').forEach((el) => {
+      const a = anchors.get(el.dataset.id!);
+      const s = a && engine!.project(a);
+      const ok = !!s && s.x > -20 && s.y > -20 && s.x < r.width + 20 && s.y < r.height + 20;
+      el.style.visibility = ok ? 'visible' : 'hidden';
+      if (ok) {
+        el.style.left = `${s!.x}px`;
+        el.style.top = `${s!.y}px`;
+      }
+    });
+    const hl = pins.querySelector<HTMLElement>('.home-label');
+    const hs = home && engine.project(home);
+    if (hl && hs) {
+      hl.style.left = `${hs.x}px`;
+      hl.style.top = `${hs.y}px`;
     }
-    const { x: x1, y: y1 } = FINCA_XY;
-    const mx = (x1 + p.x) / 2, my = (y1 + p.y) / 2;
-    const dx = p.x - x1, dy = p.y - y1;
-    const bend = 0.22;
-    const d = `M${x1} ${y1} Q${mx - dy * bend} ${my + dx * bend} ${p.x} ${p.y}`;
-    route.setAttribute('d', d);
-    reveal.setAttribute('d', d);
-    const len = reveal.getTotalLength();
-    if (reduced) return;
-    gsap.fromTo(reveal, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: Math.min(1.4, 0.4 + len / 600), ease: 'power2.inOut' });
   };
 
   const select = (id: string | null) => {
     selected = id ? PLACES.find((p) => p.id === id) ?? null : null;
     renderPins();
     renderCard();
-    drawRoute(selected);
-    if (selected && !reduced) {
-      gsap.fromTo(pins.querySelector('.pin.is-on'), { scale: 0.6 }, { scale: 1, duration: 0.6, ease: 'elastic.out(1, 0.45)' });
-      gsap.from(card.querySelectorAll('.mc-body > *, .mc-photo'), { y: 16, opacity: 0, stagger: 0.05, duration: 0.45, ease: 'power2.out' });
+    if (!engine || !home) return;
+    if (!selected) {
+      engine.hideTrails();
+      engine.overview();
+      return;
     }
+    const p = selected;
+    if (p.trail) {
+      const res = engine.showTrail(p.trail);
+      if (res) engine.flyTo(res.center, Math.max(4.2, res.size * 1.6), { azimuth: 0.25, polar: 0.7 });
+      return;
+    }
+    const uv = engine.uv(p.lat, p.lon);
+    const end = engine.showRoute(uv);
+    const along = Math.atan2(end.x - home.x, end.z - home.z);
+    if (!engine.inside(...uv)) {
+      // Fuera del mapa (León, Riaño): desde la casa, mirando hacia allí.
+      engine.flyTo(home.clone().lerp(end, 0.35), 14, { azimuth: along + Math.PI, polar: 1.05 });
+      return;
+    }
+    const mid = home.clone().lerp(end, 0.5);
+    const sep = home.distanceTo(end);
+    // Se mira la ruta de lado y desde arriba, para ver la casa y el destino a la vez.
+    engine.flyTo(mid, Math.max(4.5, sep * 1.9), { azimuth: along + Math.PI / 2 * (Math.cos(along) > 0 ? 1 : -1), polar: 0.62 });
   };
 
   const render = () => {
-    map.querySelector('.scale-note')!.textContent = t('mapScale');
     renderChips();
     renderPins();
     renderCard();
+    renderUi();
   };
   render();
   onLang(render);
+
+  // El mapa 3D se carga al acercarse a la sección.
+  const io = new IntersectionObserver(async ([e]) => {
+    if (!e.isIntersecting) return;
+    io.disconnect();
+    map.classList.add('is-loading');
+    const { Terrain3D } = await import('../map3d/terrain');
+    const eng = new Terrain3D(map, reduced);
+    const ok = await eng.init().catch((err) => {
+      console.warn('[mapa 3D]', err);
+      return false;
+    });
+    map.classList.remove('is-loading');
+    if (!ok) {
+      map.classList.add('no-gl');
+      renderCard();
+      return;
+    }
+    engine = eng;
+    if (location.search.includes('gl=force')) (window as unknown as { __map: Terrain3D }).__map = eng;
+    home = eng.world(...eng.uv(FINCA.lat, FINCA.lon), 0.05);
+    for (const p of PLACES) {
+      const [u, v] = eng.uv(p.lat, p.lon);
+      // Los lugares fuera del mapa (León, Riaño) se señalan en el borde.
+      anchors.set(p.id, eng.world(clamp(u, 0.01, 0.99), clamp(v, 0.01, 0.99), 0.05));
+    }
+    eng.onRender = place;
+    map.classList.add('is-ready');
+    place();
+  }, { rootMargin: '60% 0px' });
+  io.observe(map);
 
   chips.addEventListener('click', (e) => {
     const b = (e.target as Element).closest<HTMLButtonElement>('[data-cat]');
@@ -175,4 +197,10 @@ export function initMap(reduced: boolean) {
   };
   pins.addEventListener('click', pickFrom);
   card.addEventListener('click', pickFrom);
+  map.querySelector('.map-ui')!.addEventListener('click', (e) => {
+    const b = (e.target as Element).closest<HTMLButtonElement>('button');
+    if (!b || !engine) return;
+    if (b.dataset.zoom) engine.zoom(Number(b.dataset.zoom));
+    else select(null);
+  });
 }

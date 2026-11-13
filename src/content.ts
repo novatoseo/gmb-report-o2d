@@ -187,39 +187,52 @@ export const MOMENTS: Moment[] = [
   },
 ];
 
-export type Cat = 'nature' | 'adventure' | 'snow' | 'food' | 'arrive';
+export type Cat = 'trail' | 'nature' | 'adventure' | 'snow' | 'food' | 'arrive';
 
 export interface Place {
   id: string;
-  x: number; // coordenadas del mapa ilustrado (viewBox 1000×750)
-  y: number;
+  lat: number;
+  lon: number;
   cat: Cat;
   name: string;
   meta: L; // distancia/tiempo tal y como lo da la web
   text: L;
   photo?: string;
+  trail?: string; // ruta GPX real de la web oficial
 }
 
-export const FINCA_XY = { x: 470, y: 390 };
+/** Coordenadas de la casa (las mismas que usa su mapa actual). */
+export const FINCA = { lat: 42.88939, lon: -5.58106 };
 
 export const PLACES: Place[] = [
-  { id: 'valporquero', x: 505, y: 268, cat: 'nature', name: 'Cueva de Valporquero', meta: { es: '10 min en coche', en: '10 min drive' }, text: { es: 'Siete salas monumentales esculpidas por el agua. Visita tranquila o espeleobarranquismo único en Europa.', en: 'Seven monumental chambers carved by water. A calm visit, or caving unlike anywhere in Europe.' }, photo: 'actividades/valporquero-01.webp' },
-  { id: 'hoces', x: 440, y: 470, cat: 'nature', name: 'Hoces de Vegacervera', meta: { es: 'A la salida del pueblo', en: 'Right outside the village' }, text: { es: 'El desfiladero del Torío empieza nada más salir del pueblo. Paredes de caliza de más de 200 m: escalada y vías ferratas.', en: 'The Torío gorge begins as you leave the village. Limestone walls over 200 m high: climbing and via ferratas.' }, photo: 'actividades/escalada.webp' },
-  { id: 'playa', x: 520, y: 455, cat: 'nature', name: 'Playa fluvial de Vegacervera', meta: { es: 'En el propio Vegacervera', en: 'In Vegacervera itself' }, text: { es: 'Zona de baño en el río Torío, junto a las Hoces. Pradera, sombras y ambiente familiar en verano.', en: 'A river beach on the Torío, beside the gorge. Meadow, shade and a family feel in summer.' }, photo: 'actividades/hoces-vegacervera.jpg' },
-  { id: 'cinera', x: 300, y: 420, cat: 'nature', name: 'Faedo de Ciñera', meta: { es: '3 h a pie desde la casa', en: '3 h walk from the house' }, text: { es: 'Bosque Mejor Conservado de España y Árbol del Año 2007. La ruta sale directamente desde los alojamientos.', en: 'Spain’s Best Preserved Forest and Tree of the Year 2007. The trail starts right at the houses.' }, photo: 'actividades/faedo-cinera.webp' },
-  { id: 'calderones', x: 640, y: 300, cat: 'nature', name: 'Desfiladero de los Calderones', meta: { es: '14 km · 2 h', en: '14 km · 2 h' }, text: { es: 'Una hendidura kárstica tan estrecha que casi se tocan las paredes con los brazos abiertos.', en: 'A karst cleft so narrow you can almost touch both walls with your arms outstretched.' }, photo: 'actividades/calderones.webp' },
-  { id: 'entrepenas', x: 228, y: 285, cat: 'food', name: 'Entrepeñas · Geras', meta: { es: 'Recomendación TOP', en: 'Top pick' }, text: { es: 'Cecina de wagyu con 3 estrellas Great Taste 2026, arroz con chuletón y jamón. Encaja con el Hayedo de la Boyariza.', en: 'Wagyu cecina with 3 Great Taste stars (2026), rice with steak and ham. Pairs well with the Boyariza beech walk.' }, photo: 'actividades/entrepenas-cecina-wagyu.jpg' },
-  { id: 'bernesga', x: 175, y: 470, cat: 'adventure', name: 'Alto Bernesga 4x4', meta: { es: 'Buggies guiados', en: 'Guided buggies' }, text: { es: 'Rutas guiadas en buggy por la Reserva de la Biosfera del Alto Bernesga, con varias duraciones y niveles.', en: 'Guided buggy routes through the Alto Bernesga Biosphere Reserve, in several lengths and levels.' }, photo: 'actividades/buggies.webp' },
-  { id: 'porma', x: 790, y: 470, cat: 'adventure', name: 'Rafting en el Porma', meta: { es: 'De junio a septiembre', en: 'June to September' }, text: { es: 'Descenso del Porma en raft con guía desde Boñar. Aguas bravas asequibles y paddle surf en el embalse.', en: 'Guided rafting down the Porma from Boñar. Friendly white water, plus paddle boarding on the reservoir.' }},
-  { id: 'riano', x: 935, y: 215, cat: 'adventure', name: 'Riaño y sus fiordos', meta: { es: 'Barco y miradores', en: 'Boat & viewpoints' }, text: { es: 'Navegación en catamarán entre paredes de caliza, el columpio gigante del Alto Valcayo y fauna ibérica.', en: 'Catamaran trips between limestone walls, the giant swing at Alto Valcayo, and Iberian wildlife.' }, photo: 'actividades/fiordos.webp' },
-  { id: 'pajares', x: 140, y: 105, cat: 'snow', name: 'Valgrande-Pajares', meta: { es: '≈28 km · media hora larga', en: '≈28 km · just over 30 min' }, text: { es: 'La estación más cercana, en la divisoria con Asturias: 21,5 km esquiables, alquiler de material y escuela.', en: 'The nearest ski resort, on the Asturias border: 21.5 km of slopes, rental and ski school.' } },
-  { id: 'sanisidro', x: 770, y: 110, cat: 'snow', name: 'San Isidro', meta: { es: '≈55 min en coche', en: '≈55 min drive' }, text: { es: 'La estación de los leoneses, en Puebla de Lillo: cuatro sectores y pistas para todos los niveles.', en: 'León’s own ski resort in Puebla de Lillo: four sectors and runs for every level.' } },
-  { id: 'matallana', x: 505, y: 560, cat: 'arrive', name: 'Tren · Matallana de Torío', meta: { es: '< 5 km · 9 min', en: '< 5 km · 9 min' }, text: { es: 'La parada de tren más cercana, y mucha gente no sabe que existe. Avisad al reservar y lo organizan con vosotros.', en: 'The closest train stop, and most people don’t know it exists. Let them know when booking and they’ll sort it out.' } },
-  { id: 'leon', x: 480, y: 700, cat: 'arrive', name: 'León', meta: { es: '35 km · 40 min', en: '35 km · 40 min' }, text: { es: 'Por la LE-311 siguiendo el valle del Torío. AVE desde Madrid en unas dos horas. Carretera asfaltada hasta la puerta.', en: 'Along the LE-311 up the Torío valley. High-speed train from Madrid in about two hours. Paved road to the door.' } },
+  // Rutas con track GPX real
+  { id: 'r-cinera', lat: 42.8806, lon: -5.6155, cat: 'trail', trail: 'valle-faedo-cinera-pozo-ibarra', name: 'Faedo de Ciñera y Pozo Ibarra', meta: { es: 'Desde la casa · 3 h · media-baja', en: 'From the house · 3 h · easy-moderate' }, text: { es: 'Sale de los alojamientos hacia el hayedo de Ciñera, Bosque Mejor Conservado de España y Árbol del Año 2007, pasando por el Pozo Ibarra.', en: 'Leaves from the houses towards the Ciñera beech wood, Spain’s Best Preserved Forest and Tree of the Year 2007, via Pozo Ibarra.' }, photo: 'actividades/faedo-cinera.webp' },
+  { id: 'r-valporquero', lat: 42.905, lon: -5.56, cat: 'trail', trail: 'valle-valporquero', name: 'A Valporquero por la Atalaya', meta: { es: 'Desde la casa · 3 h · media-baja', en: 'From the house · 3 h · easy-moderate' }, text: { es: 'Circular hasta Valporquero de Torío pasando por el Mirador de la Atalaya, con panorámica abierta del valle.', en: 'Loop to Valporquero de Torío via the Atalaya viewpoint, with open views over the valley.' } },
+  { id: 'r-coladilla', lat: 42.887, lon: -5.56, cat: 'trail', trail: 'valle-coladilla-valle', name: 'Circular a Coladilla', meta: { es: 'Desde la casa · 2 h 30 · baja', en: 'From the house · 2 h 30 · easy' }, text: { es: 'Vuelta sencilla desde los alojamientos hasta el pueblo de Coladilla, cruzando varios robledales.', en: 'An easy loop from the houses to the village of Coladilla, through several oak woods.' } },
+  { id: 'r-mirador', lat: 42.886, lon: -5.572, cat: 'trail', trail: 'valle-mirador', name: 'Sendero al Mirador', meta: { es: 'Desde la casa · 1 h 30 · baja', en: 'From the house · 1 h 30 · easy' }, text: { es: 'Paseo corto por robledal que termina en un mirador natural con vistas a Coladilla, Valle y Vegacervera.', en: 'A short walk through oak woods to a natural viewpoint over Coladilla, Valle and Vegacervera.' } },
+  { id: 'r-circular', lat: 42.8925, lon: -5.574, cat: 'trail', trail: 'circular-valle', name: 'Circular por encima de Valle', meta: { es: 'Desde la casa · 1 h · muy baja', en: 'From the house · 1 h · very easy' }, text: { es: 'Vuelta corta y suave por encima del pueblo, atravesando un pequeño robledal.', en: 'A short, gentle loop above the village through a small oak wood.' } },
+  { id: 'r-calderones', lat: 42.84, lon: -5.785, cat: 'trail', trail: 'ruta-los-calderones-de-piedrasecha', name: 'Desfiladero de los Calderones', meta: { es: '14 km · 2 h · media', en: '14 km · 2 h · moderate' }, text: { es: 'Una hendidura kárstica vertical tan estrecha que casi se tocan las paredes con los brazos abiertos.', en: 'A vertical karst cleft so narrow you can almost touch both walls with your arms outstretched.' }, photo: 'actividades/calderones.webp' },
+  { id: 'r-orzonaga', lat: 42.845, lon: -5.555, cat: 'trail', trail: 'faedo-de-orzonaga', name: 'Faedo de Orzonaga', meta: { es: '2 h 30 · media', en: '2 h 30 · moderate' }, text: { es: 'Parte del pueblo de Orzonaga y atraviesa un hayedo de gran valor paisajístico.', en: 'Starts in the village of Orzonaga and crosses a beautiful beech wood.' } },
+  { id: 'r-boyariza', lat: 42.888, lon: -5.776, cat: 'trail', trail: 'hayedo-de-la-boyariza-geras', name: 'Hayedo de la Boyariza', meta: { es: '7 km · 2 h · media-baja', en: '7 km · 2 h · easy-moderate' }, text: { es: 'Más de 7 km entre desfiladeros de roca, puentes de madera y bosque atlántico. Para comer: Entrepeñas, en Geras.', en: 'Over 7 km of rocky gorges, wooden bridges and Atlantic forest. Lunch: Entrepeñas, in Geras.' } },
+  { id: 'r-villar', lat: 42.905, lon: -5.6, cat: 'trail', trail: 'mtb-valle-puerto-villar-vegacervera', name: 'MTB Puerto del Villar', meta: { es: 'Bici de montaña · desde la casa', en: 'Mountain bike · from the house' }, text: { es: 'Sube al Puerto del Villar y baja hacia Vegacervera por las Hoces. Vistas amplias y descenso técnico.', en: 'Climbs to Puerto del Villar and drops to Vegacervera through the gorge. Wide views, technical descent.' } },
+  { id: 'r-dragon', lat: 42.853, lon: -5.645, cat: 'trail', trail: 'valle-roca-dragon', name: 'MTB Roca Dragón', meta: { es: 'Bici de montaña · exigente', en: 'Mountain bike · demanding' }, text: { es: 'Sube hacia la Zona Alfa por la Roca Dragón. Tramos exigentes, conecta con los remontes del Alto Bernesga.', en: 'Climbs to Zona Alfa via Roca Dragón. Demanding sections, linked to the Alto Bernesga bike lifts.' }, photo: 'actividades/buggies.webp' },
+  // Lugares
+  { id: 'valporquero', lat: 42.9042, lon: -5.5542, cat: 'nature', name: 'Cueva de Valporquero', meta: { es: '10 min en coche', en: '10 min drive' }, text: { es: 'Siete salas monumentales esculpidas por el agua. Visita tranquila o espeleobarranquismo único en Europa.', en: 'Seven monumental chambers carved by water. A calm visit, or caving unlike anywhere in Europe.' }, photo: 'actividades/valporquero-01.webp' },
+  { id: 'hoces', lat: 42.874, lon: -5.534, cat: 'nature', name: 'Hoces de Vegacervera', meta: { es: 'A la salida del pueblo', en: 'Right outside the village' }, text: { es: 'El desfiladero del Torío: paredes de caliza de más de 200 m, escalada y vías ferratas.', en: 'The Torío gorge: limestone walls over 200 m high, climbing and via ferratas.' }, photo: 'actividades/escalada.webp' },
+  { id: 'playa', lat: 42.8835, lon: -5.5352, cat: 'nature', name: 'Playa fluvial de Vegacervera', meta: { es: 'En el propio Vegacervera', en: 'In Vegacervera itself' }, text: { es: 'Zona de baño en el río Torío, junto a las Hoces. Pradera, sombras y ambiente familiar en verano.', en: 'A river beach on the Torío, beside the gorge. Meadow, shade and a family feel in summer.' }, photo: 'actividades/hoces-vegacervera.jpg' },
+  { id: 'entrepenas', lat: 42.8925, lon: -5.7615, cat: 'food', name: 'Entrepeñas · Geras', meta: { es: 'Recomendación TOP', en: 'Top pick' }, text: { es: 'Cecina de wagyu con 3 estrellas Great Taste 2026, arroz con chuletón y jamón. Reservad en fin de semana.', en: 'Wagyu cecina with 3 Great Taste stars (2026), rice with steak and ham. Book at weekends.' }, photo: 'actividades/entrepenas-cecina-wagyu.jpg' },
+  { id: 'bernesga', lat: 42.858, lon: -5.66, cat: 'adventure', name: 'Alto Bernesga 4x4', meta: { es: 'Buggies guiados', en: 'Guided buggies' }, text: { es: 'Rutas guiadas en buggy por la Reserva de la Biosfera del Alto Bernesga, con varias duraciones y niveles.', en: 'Guided buggy routes through the Alto Bernesga Biosphere Reserve, in several lengths and levels.' }, photo: 'actividades/buggies.webp' },
+  { id: 'porma', lat: 42.8667, lon: -5.323, cat: 'adventure', name: 'Rafting en el Porma · Boñar', meta: { es: 'De junio a septiembre', en: 'June to September' }, text: { es: 'Descenso del Porma en raft con guía desde Boñar. Aguas bravas asequibles y paddle surf en el embalse.', en: 'Guided rafting down the Porma from Boñar. Friendly white water, plus paddle boarding on the reservoir.' } },
+  { id: 'pajares', lat: 42.995, lon: -5.768, cat: 'snow', name: 'Valgrande-Pajares', meta: { es: '≈28 km · media hora larga', en: '≈28 km · just over 30 min' }, text: { es: 'La estación más cercana, en la divisoria con Asturias: 21,5 km esquiables, alquiler de material y escuela.', en: 'The nearest ski resort, on the Asturias border: 21.5 km of slopes, rental and ski school.' } },
+  { id: 'sanisidro', lat: 43.06, lon: -5.368, cat: 'snow', name: 'San Isidro', meta: { es: '≈55 min en coche', en: '≈55 min drive' }, text: { es: 'La estación de los leoneses, en Puebla de Lillo: cuatro sectores y pistas para todos los niveles.', en: 'León’s own ski resort in Puebla de Lillo: four sectors and runs for every level.' } },
+  { id: 'matallana', lat: 42.8665, lon: -5.5225, cat: 'arrive', name: 'Tren · Matallana de Torío', meta: { es: '< 5 km · 9 min', en: '< 5 km · 9 min' }, text: { es: 'La parada de tren más cercana, y mucha gente no sabe que existe. Avisad al reservar y lo organizan con vosotros.', en: 'The closest train stop, and most people don’t know it exists. Let them know when booking and they’ll sort it out.' } },
+  { id: 'leon', lat: 42.5987, lon: -5.5671, cat: 'arrive', name: 'León', meta: { es: '35 km · 40 min', en: '35 km · 40 min' }, text: { es: 'Por la LE-311 siguiendo el valle del Torío. AVE desde Madrid en unas dos horas. Carretera asfaltada hasta la puerta.', en: 'Along the LE-311 up the Torío valley. High-speed train from Madrid in about two hours. Paved road to the door.' } },
+  { id: 'riano', lat: 42.9706, lon: -5.0, cat: 'adventure', name: 'Riaño y sus fiordos', meta: { es: 'Barco y miradores', en: 'Boat & viewpoints' }, text: { es: 'Navegación en catamarán entre paredes de caliza, el columpio gigante del Alto Valcayo y fauna ibérica.', en: 'Catamaran trips between limestone walls, the giant swing at Alto Valcayo, and Iberian wildlife.' }, photo: 'actividades/fiordos.webp' },
 ];
 
 export const CATS: { id: Cat | 'all'; label: L; color: string }[] = [
   { id: 'all', label: { es: 'Todo', en: 'All' }, color: 'var(--ink)' },
+  { id: 'trail', label: { es: 'Rutas GPX', en: 'GPX trails' }, color: '#1d6a63' },
   { id: 'nature', label: { es: 'Naturaleza', en: 'Nature' }, color: '#2f6a3a' },
   { id: 'adventure', label: { es: 'Aventura', en: 'Adventure' }, color: '#a3421e' },
   { id: 'snow', label: { es: 'Nieve', en: 'Snow' }, color: '#2b6596' },
@@ -339,12 +352,18 @@ export const UI = {
   mapEyebrow: { es: 'Alrededor', en: 'Around' },
   mapTitle: { es: 'Todo el valle, desde la puerta.', en: 'The whole valley, from the front door.' },
   mapLead: {
-    es: 'Cuevas, hayedos, desfiladeros, nieve y buena mesa. Elige un sitio y te trazamos el camino.',
-    en: 'Caves, beech woods, gorges, snow and great food. Pick a place and we’ll draw the way.',
+    es: 'El relieve real del valle en 3D, con las rutas GPX que salen desde la puerta. Arrastra para girar y elige un sitio: la cámara vuela hasta él.',
+    en: 'The valley’s real relief in 3D, with GPX trails that start at the door. Drag to rotate and pick a place: the camera flies there.',
   },
   mapPick: { es: 'Elige un lugar en el mapa', en: 'Pick a place on the map' },
   mapHome: { es: 'La Finca', en: 'La Finca' },
-  mapScale: { es: 'sin escala · hecho con cariño', en: 'not to scale · made with love' },
+  mapHint: { es: 'Arrastra para girar · Ctrl + rueda para acercar', en: 'Drag to rotate · Ctrl + wheel to zoom' },
+  mapHintTouch: { es: 'Usa dos dedos para mover el mapa', en: 'Use two fingers to move the map' },
+  mapReset: { es: 'Volver a la casa', en: 'Back to the house' },
+  zoomIn: { es: 'Acercar', en: 'Zoom in' },
+  zoomOut: { es: 'Alejar', en: 'Zoom out' },
+  mapCredit: { es: 'Relieve: Terrain Tiles (AWS Open Data / Mapzen) · Rutas GPX: La Finca del Valle', en: 'Relief: Terrain Tiles (AWS Open Data / Mapzen) · GPX trails: La Finca del Valle' },
+  mapNoGL: { es: 'Tu navegador no puede mostrar el mapa 3D. Aquí tienes los lugares:', en: 'Your browser can’t show the 3D map. Here are the places:' },
 
   galleryEyebrow: { es: 'Cuatro estaciones', en: 'Four seasons' },
   galleryTitle: { es: 'Mismo sitio. Otra estación.', en: 'Same place. Another season.' },

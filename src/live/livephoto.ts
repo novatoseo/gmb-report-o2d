@@ -1,4 +1,5 @@
 import { FRAG, VERT } from './shader';
+import { onTune, TUNE } from './tuning';
 
 /** Una foto real animada. Los archivos están en /live/<name>-{1200,1920}.webp y /live/<name>-aux.png */
 export interface Scene {
@@ -87,6 +88,7 @@ export class LivePhoto {
       return;
     }
     this.setup();
+    onTune(() => this.frame());
 
     // Se prepara al acercarse y solo pinta mientras se ve.
     const near = new IntersectionObserver(([e]) => {
@@ -232,12 +234,13 @@ export class LivePhoto {
     gl.bindTexture(gl.TEXTURE_2D, t.col);
     gl.activeTexture(gl.TEXTURE0 + unit + 1);
     gl.bindTexture(gl.TEXTURE_2D, t.aux);
-    gl.uniform4f(this.u['uP' + suffix], s.focus ?? 0.5, s.strength ?? 0.03, s.night ?? 0, s.fog ?? 0);
-    gl.uniform4f(this.u['uF' + suffix], s.snow ?? 0, s.clouds ?? 0, s.twinkle ?? 0, s.glow ?? 0);
+    const night = Math.min(1, (s.night ?? 0) * TUNE.night);
+    gl.uniform4f(this.u['uP' + suffix], s.focus ?? 0.5, (s.strength ?? 0.03) * TUNE.move, night, (s.fog ?? 0) * TUNE.fog);
+    gl.uniform4f(this.u['uF' + suffix], Math.min(2, (s.snow ?? 0) * TUNE.snow), (s.clouds ?? 0) * TUNE.clouds, s.twinkle ?? 0, (s.glow ?? 0) * TUNE.glow);
     const sun = s.sun ?? [0, 0, 0];
     gl.uniform4f(this.u['uSun' + suffix], sun[0], 1 - sun[1], sun[2], 0);
     const pan = s.pan ?? [0, 0];
-    gl.uniform4f(this.u['uCam' + suffix], (s.dolly ?? 0) * this.motion, pan[0], -pan[1], s.zoom ?? 1.06);
+    gl.uniform4f(this.u['uCam' + suffix], (s.dolly ?? 0) * this.motion * TUNE.move, pan[0], -pan[1], (s.zoom ?? 1.06) + Math.max(0, TUNE.move - 1) * 0.03);
     gl.uniform1f(this.u['uAsp' + suffix], s.aspect);
     return true;
   }
