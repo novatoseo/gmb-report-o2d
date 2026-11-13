@@ -295,11 +295,9 @@ export const UI = {
   },
   heroCta: { es: 'Reservar estancia', en: 'Book your stay' },
   heroCta2: { es: 'Conocer las casas', en: 'Meet the houses' },
-  heroNow: { es: 'Ahora mismo en el valle', en: 'Right now in the valley' },
-  heroScrub: { es: 'Mueve el sol', en: 'Move the sun' },
-  heroPlay: { es: 'Ver un día entero', en: 'Play a whole day' },
-  heroHint: { es: 'Desliza: el valle cambia contigo', en: 'Scroll: the valley changes with you' },
-  sheep: { es: '¡Beee!', en: 'Baaa!' },
+  heroNight: { es: 'Del atardecer a la noche', en: 'From sunset to night' },
+  heroPlay: { es: 'Encender o apagar la noche', en: 'Turn night on or off' },
+  heroHint: { es: 'Baja: la cámara entra en el valle', en: 'Scroll: the camera flies into the valley' },
   discount: { es: '−35 % reservando en la web', en: '−35% booking direct' },
   stamp: { es: 'reservando en la web', en: 'booking direct' },
 
@@ -357,6 +355,7 @@ export const UI = {
   autumn: { es: 'Otoño', en: 'Autumn' },
   winter: { es: 'Invierno', en: 'Winter' },
   allSeasons: { es: 'Todas', en: 'All' },
+  seasonSwitch: { es: 'Cambiar estación', en: 'Switch season' },
 
   reviewsEyebrow: { es: 'Opiniones', en: 'Reviews' },
   reviewsTitle: { es: 'Lo que dicen al irse.', en: 'What guests say on the way out.' },
@@ -394,14 +393,5 @@ export const UI = {
   footerConcept: {
     es: 'Concepto de rediseño no oficial. Textos, datos y fotografías: La Finca del Valle.',
     en: 'Unofficial redesign concept. Copy, data and photography: La Finca del Valle.',
-  },
-  phase: {
-    night: { es: 'noche cerrada', en: 'deep night' },
-    dawn: { es: 'amanece', en: 'dawn' },
-    morning: { es: 'mañana', en: 'morning' },
-    midday: { es: 'mediodía', en: 'midday' },
-    afternoon: { es: 'tarde', en: 'afternoon' },
-    golden: { es: 'hora dorada', en: 'golden hour' },
-    dusk: { es: 'anochece', en: 'dusk' },
   },
 };

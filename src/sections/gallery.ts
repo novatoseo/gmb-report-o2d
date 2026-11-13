@@ -2,12 +2,32 @@ import { gsap } from 'gsap';
 import { GALLERY, REVIEWS, type Shot } from '../content';
 import { onLang, t, tr } from '../i18n';
 import { lockScroll } from '../scroll';
+import { LivePhoto } from '../live/livephoto';
+import { scene } from '../live/scenes';
 
 export function initGallery(reduced: boolean) {
   const strip = document.getElementById('strip')!;
   const chips = document.getElementById('season-chips')!;
   const box = document.getElementById('lightbox') as HTMLDialogElement;
   let season: Shot['season'] | 'all' = 'all';
+
+  // Panel vivo: el mismo sitio en otoño y nevando.
+  const panel = document.getElementById('season-live')!;
+  const label = document.getElementById('season-label')!;
+  const autumn = scene('otono');
+  const winter = scene('invierno');
+  const live = new LivePhoto(panel, autumn, { pointer: true, label: 'Las casas desde el aire: en otoño y nevadas' });
+  live.b = winter;
+  live.onReady = () => live.load(winter);
+  const fx = { m: 0 };
+  const showSeason = (w: boolean) => {
+    gsap.to(fx, { m: w ? 1 : 0, duration: reduced ? 0 : 2.2, ease: 'power2.inOut', onUpdate: () => { live.mix = fx.m; live.redraw(); } });
+    label.textContent = t(w ? 'winter' : 'autumn');
+    panel.classList.toggle('is-winter', w);
+  };
+  label.textContent = t('autumn');
+  onLang(() => (label.textContent = t(fx.m > 0.5 ? 'winter' : 'autumn')));
+  panel.querySelector('.season-toggle')!.addEventListener('click', () => showSeason(fx.m < 0.5));
   let shots = GALLERY;
   let idx = 0;
 
@@ -34,6 +54,7 @@ export function initGallery(reduced: boolean) {
     if (!b) return;
     season = b.dataset.s as typeof season;
     render();
+    if (season !== 'all') showSeason(season === 'winter');
   });
 
   const page = (dir: number) => strip.scrollBy({ left: dir * strip.clientWidth * 0.8, behavior: reduced ? 'auto' : 'smooth' });

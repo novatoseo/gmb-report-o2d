@@ -53,6 +53,7 @@
   <main>
     <!-- 1 · HERO -->
     <section class="hero scene" id="inicio" aria-labelledby="hero-title">
+      <div class="scene-shade" aria-hidden="true"></div>
       <div class="hero-copy">
         <p class="eyebrow" data-i18n="heroEyebrow">Valle de Vegacervera · León</p>
         <h1 id="hero-title" class="display"><span class="line" data-i18n="heroTitleA">La Finca</span><span class="line accent" data-i18n="heroTitleB">del Valle</span></h1>
@@ -63,10 +64,12 @@
         </div>
       </div>
       <div class="sky-dial" id="sky-dial">
-        <p class="dial-now"><span data-i18n="heroNow">Ahora mismo en el valle</span> · <strong id="dial-time">--:--</strong> · <span id="dial-phase"></span></p>
+        <p class="dial-now" data-i18n="heroNight">Enciende la noche</p>
         <div class="dial-row">
-          <label class="sr" for="dial-range" data-i18n="heroScrub">Mueve el sol</label>
-          <input id="dial-range" type="range" min="0" max="23.99" step="0.01" value="12" />
+          <span class="dial-ic" aria-hidden="true">☀</span>
+          <label class="sr" for="dial-range" data-i18n="heroNight">Enciende la noche</label>
+          <input id="dial-range" type="range" min="0" max="1" step="0.01" value="0" />
+          <span class="dial-ic" aria-hidden="true">☾</span>
           <button type="button" class="dial-play" id="dial-play" data-i18n-attr="aria-label:heroPlay;title:heroPlay">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path class="ic-play" d="M8 5v14l11-7z"/><path class="ic-pause" d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
           </button>
@@ -102,6 +105,7 @@
     <!-- 3 · UN DÍA EN LA FINCA -->
     <section class="day" id="dia" aria-labelledby="day-title">
       <div class="day-sticky scene" id="day-scene">
+        <div class="scene-shade" aria-hidden="true"></div>
         <div class="day-head">
           <p class="eyebrow" data-i18n="dayEyebrow">Un día en la finca</p>
           <h2 id="day-title" class="h2" data-i18n="dayTitle">Del primer café a la última estrella.</h2>
@@ -161,6 +165,14 @@
             <button type="button" class="round" id="g-prev" data-i18n-attr="aria-label:prev">←</button>
             <button type="button" class="round" id="g-next" data-i18n-attr="aria-label:next">→</button>
           </div>
+        </div>
+      </div>
+      <div class="wrap">
+        <div class="season-live scene" id="season-live">
+          <button type="button" class="season-toggle" aria-live="polite">
+            <span class="sl-dot" aria-hidden="true"></span><span id="season-label">Otoño</span>
+            <small data-i18n="seasonSwitch">Cambiar estación</small>
+          </button>
         </div>
       </div>
       <div class="strip" id="strip" data-lenis-prevent-horizontal></div>

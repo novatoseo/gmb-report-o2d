@@ -1,16 +1,10 @@
 import { gsap } from 'gsap';
 import { HOUSES, type House } from '../content';
 import { onLang, t, tr } from '../i18n';
-import { Valley } from '../scene/valley';
+import { LivePhoto } from '../live/livephoto';
+import { scene, UNITS } from '../live/scenes';
 import { lockScroll, scrollToId } from '../scroll';
 import { selectHouse } from './booking';
-
-// Zonas clicables de cada casa sobre la fachada (en % del viewBox 560 540 480 260).
-const HITS: Record<House['id'], { l: number; t: number; w: number; h: number }> = {
-  maelo: { l: 16.5, t: 20.4, w: 22.7, h: 41.9 },
-  brana: { l: 39.6, t: 32.3, w: 21.2, h: 30 },
-  teleno: { l: 60.8, t: 20.4, w: 22.7, h: 41.9 },
-};
 
 export function initHouses(reduced: boolean) {
   const facade = document.getElementById('facade')!;
@@ -18,26 +12,26 @@ export function initHouses(reduced: boolean) {
   const cards = document.getElementById('house-cards')!;
   const dialog = document.getElementById('house-dialog') as HTMLDialogElement;
 
-  const valley = new Valley(facade, {
-    id: 'fv',
-    viewBox: '560 540 480 260',
-    preserve: 'xMidYMid meet',
-    label: 'Fachada de las tres casas: Maelo a la izquierda, Braña en el centro y Teleno a la derecha',
-    lazy: true,
-  });
-  valley.setHour(18.6);
+  // La foto real de la fachada: cada cristalera es una casa.
+  const sc = scene('fachada');
+  const live = new LivePhoto(facade, sc, { pointer: true, label: 'Fachada de las tres casas al atardecer: Maelo a la izquierda, Braña en el centro y Teleno a la derecha' });
+  const fx = { on: 0 };
+  // Posición en pantalla de una zona de la imagen (la foto se muestra entera, con el zoom base).
+  const z = sc.zoom ?? 1;
+  const pos = (v: number) => ((v - 0.5) * z + 0.5) * 100;
 
-  const unitEl = (id: string) => facade.querySelector<SVGGElement>(`.unit-${id}`);
   const light = (id: string | null) => {
-    facade.querySelectorAll('.unit').forEach((u) => u.classList.toggle('is-on', (u as SVGGElement).dataset.unit === id));
+    if (id) live.hi = UNITS[id as House['id']];
+    gsap.to(fx, { on: id ? 1 : 0, duration: reduced ? 0 : 0.5, ease: 'power2.out', onUpdate: () => { live.hiOn = fx.on; live.redraw(); } });
     facade.classList.toggle('has-on', !!id);
+    hits.querySelectorAll<HTMLElement>('.hit').forEach((h) => h.classList.toggle('is-on', h.dataset.id === id));
     cards.querySelectorAll<HTMLElement>('.house-card').forEach((c) => c.classList.toggle('is-on', c.dataset.id === id));
   };
 
   const render = () => {
     hits.innerHTML = HOUSES.map((h) => {
-      const p = HITS[h.id];
-      return `<button type="button" class="hit" data-id="${h.id}" style="left:${p.l}%;top:${p.t}%;width:${p.w}%;height:${p.h}%">
+      const [x0, y0, x1, y1] = UNITS[h.id];
+      return `<button type="button" class="hit" data-id="${h.id}" style="left:${pos(x0)}%;top:${pos(y0)}%;width:${pos(x1) - pos(x0)}%;height:${pos(y1) - pos(y0)}%">
         <span class="hit-tag"><b>${h.name}</b><span class="hit-price"> ${t('from')} ${h.priceFrom} €</span></span>
         <span class="sr">${t('enter')} ${h.name}</span>
       </button>`;
@@ -136,8 +130,6 @@ export function initHouses(reduced: boolean) {
     const y = r ? r.top + r.height / 2 : innerHeight / 2;
     gsap.fromTo(dialog, { clipPath: `circle(0px at ${x}px ${y}px)` }, { clipPath: `circle(150% at ${x}px ${y}px)`, duration: 0.9, ease: 'power3.inOut' });
     gsap.from(dialog.querySelectorAll('.hd-info > *'), { y: 24, opacity: 0, stagger: 0.05, duration: 0.6, delay: 0.35, ease: 'power2.out' });
-    const u = unitEl(id);
-    if (u) gsap.fromTo(u, { scale: 1 }, { scale: 1.04, transformOrigin: '50% 100%', yoyo: true, repeat: 1, duration: 0.25 });
   }
 
   const close = () => {
