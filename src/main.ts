@@ -6,7 +6,7 @@ import './styles/main.css';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { CONTACT } from './content';
-import { applyStatic, lang, setLang, onLang } from './i18n';
+import { applyStatic, lang, setLang, onLang, t } from './i18n';
 import { bindAnchors, initScroll } from './scroll';
 import { initFx } from './fx';
 import { initHero } from './sections/hero';
@@ -16,6 +16,7 @@ import { initMap } from './sections/map';
 import { initGallery, initReviews } from './sections/gallery';
 import { initBooking } from './sections/booking';
 import { initTuningPanel } from './live/tuning';
+import { CONCEPT, initConcept } from './concept';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -36,6 +37,7 @@ initFx(reduced);
 initNav();
 renderContact();
 initTuningPanel();
+initConcept();
 
 addEventListener('load', () => ScrollTrigger.refresh());
 document.fonts?.ready.then(() => ScrollTrigger.refresh());
@@ -76,11 +78,17 @@ function initNav() {
 
 function renderContact() {
   const el = document.getElementById('contact')!;
-  el.innerHTML = `
+  const paint = () => {
+    el.innerHTML = CONCEPT
+      ? `<span>Valle de Vegacervera, León</span><span class="muted">${t('contactHidden')}</span>`
+      : `
     <a href="mailto:${CONTACT.email}">${CONTACT.email}</a>
     <a href="tel:${CONTACT.phoneHref}">${CONTACT.phone}</a>
     <a href="tel:${CONTACT.phone2Href}">${CONTACT.phone2}</a>
     <a href="https://wa.me/${CONTACT.whatsapp}" target="_blank" rel="noopener">WhatsApp</a>
     <a href="${CONTACT.maps}" target="_blank" rel="noopener">${CONTACT.address}</a>
     <span class="muted">Nº Registro Turismo CyL: ${CONTACT.registro}</span>`;
+  };
+  paint();
+  onLang(paint);
 }

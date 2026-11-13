@@ -409,6 +409,9 @@ export const UI = {
   faqTitle: { es: 'Preguntas rápidas', en: 'Quick questions' },
 
   footerTag: { es: 'Reserva de la Biosfera de los Argüellos', en: 'Argüellos Biosphere Reserve' },
+  conceptBar: { es: 'Concepto no oficial · demo sin reservas ni contacto reales', en: 'Unofficial concept · demo, no real bookings or contact' },
+  demoNote: { es: 'Demo: en la web final, este botón abriría la reserva o el contacto real.', en: 'Demo: on the final site this button would open the real booking or contact.' },
+  contactHidden: { es: 'Teléfono y email ocultos en esta demo.', en: 'Phone and email hidden in this demo.' },
   footerConcept: {
     es: 'Concepto de rediseño no oficial. Textos, datos y fotografías: La Finca del Valle.',
     en: 'Unofficial redesign concept. Copy, data and photography: La Finca del Valle.',

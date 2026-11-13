@@ -13,9 +13,12 @@ export type TuneKey = keyof typeof TUNE;
 const DEFAULTS = { ...TUNE };
 
 const KEY = 'fdv-ajustes';
+function wantsPanel() {
+  return location.search.includes('ajustes') || location.hash === '#ajustes';
+}
 try {
   const saved = JSON.parse(localStorage.getItem(KEY) ?? 'null');
-  if (saved && location.search.includes('ajustes')) Object.assign(TUNE, saved);
+  if (saved && wantsPanel()) Object.assign(TUNE, saved);
 } catch {
   /* sin almacenamiento */
 }
@@ -33,7 +36,7 @@ const LABELS: Record<TuneKey, string> = {
 };
 
 export function initTuningPanel() {
-  if (!location.search.includes('ajustes')) return;
+  if (!wantsPanel()) return;
   const box = document.createElement('aside');
   box.className = 'tune';
   box.setAttribute('aria-label', 'Ajustes de intensidad');
@@ -46,7 +49,8 @@ export function initTuningPanel() {
       <div class="tune-row">
         <button type="button" data-act="copy">Copiar valores</button>
         <button type="button" data-act="reset">Restablecer</button>
-      </div>`;
+      </div>
+      <pre class="tune-out" hidden></pre>`;
   };
   render();
   box.addEventListener('input', (e) => {
@@ -65,7 +69,10 @@ export function initTuningPanel() {
         await navigator.clipboard.writeText(text);
         (e.target as HTMLElement).textContent = '¡Copiado!';
       } catch {
-        prompt('Copia estos valores:', text.replace(/\n/g, ' · '));
+        const out = box.querySelector<HTMLElement>('.tune-out')!;
+        out.textContent = text;
+        out.hidden = false;
+        getSelection()?.selectAllChildren(out);
       }
     }
     if (act === 'reset') {

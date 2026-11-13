@@ -1,5 +1,6 @@
 import { CONTACT, FAQS, HOUSES, type House } from '../content';
 import { lang, onLang, t, tr } from '../i18n';
+import { CONCEPT } from '../concept';
 
 type State = { house: House['id']; start: Date | null; end: Date | null; guests: number; month: Date; hover: Date | null };
 
@@ -108,9 +109,14 @@ export function initBooking() {
         <p class="fine">${t('estimateNote')}</p>
       </div>
       <div class="tk-actions">
+        ${CONCEPT ? `
+        <button type="button" class="btn btn-sun" data-demo>${t('goEngine')}</button>
+        <button type="button" class="btn btn-ghost" data-demo>${t('goWhatsapp')}</button>
+        <button type="button" class="btn btn-link" data-demo>${t('goEmail')}</button>
+        <p class="fine demo-note" hidden></p>` : `
         <a class="btn btn-sun" href="${CONTACT.bookingEngine}" target="_blank" rel="noopener">${t('goEngine')}</a>
         <a class="btn btn-ghost" href="https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">${t('goWhatsapp')}</a>
-        <a class="btn btn-link" href="mailto:${CONTACT.email}?subject=${encodeURIComponent(`${lang() === 'es' ? 'Reserva' : 'Booking'} · ${h.name}`)}&body=${encodeURIComponent(msg)}">${t('goEmail')}</a>
+        <a class="btn btn-link" href="mailto:${CONTACT.email}?subject=${encodeURIComponent(`${lang() === 'es' ? 'Reserva' : 'Booking'} · ${h.name}`)}&body=${encodeURIComponent(msg)}">${t('goEmail')}</a>`}
       </div>
       <ul class="tk-policies"><li>${t('discount')}</li><li>${t('policy1')}</li><li>${t('policy2')}</li><li>${t('policy3')}</li></ul>`;
   };
