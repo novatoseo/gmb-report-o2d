@@ -17,7 +17,7 @@ npm run preview   # sirve dist/ en http://localhost:4173
 
 | Sección | Qué hace |
 | --- | --- |
-| **El viaje (3D)** | Una sola escena WebGL que el scroll recorre, al estilo de Igloo Inc (Site of the Year 2024 de Awwwards). Empieza al amanecer sobre las nubes y desciende por el relieve real de la cordillera hasta el valle del Torío. Luego atraviesa las fotos reales de la casa, que flotan en el cielo en 3D (cada foto se «quema» al pasar a la siguiente), y hace un foco sobre Maelo, Braña y Teleno. Sigue con el amanecer, la hora dorada y la ruta GPX del Faedo de Ciñera dibujándose sola, nieva sobre la sierra y termina de noche con las casas encendidas. Un HUD muestra la latitud, la longitud y la altitud reales de la cámara. Al final, el relieve se deshace en miles de puntos de luz, «el valle hecho de luz». |
+| **El viaje (3D)** | Una sola escena WebGL que el scroll recorre en 4 momentos, todo en la hora azul. **I · El valle:** sobre las nubes y descenso por el relieve real. **II · Las casas:** se atraviesan las fotos reales en 3D y el foco recorre Maelo, Braña y Teleno con su etiqueta pegada a la cristalera. **III · Desde la puerta:** la ruta GPX del Faedo de Ciñera se dibuja sola. **IV · El silencio:** nieva, las casas encendidas y el valle se deshace en puntos de luz. Los titulares están dentro de la escena como texto SDF (troika-three-text); los de la página siguen ahí, ocultos a la vista, para lectores de pantalla y traducción. Un HUD muestra la latitud, la longitud y la altitud reales de la cámara. |
 | **Capa Igloo** | Precarga a pantalla completa con contador, postproceso (bloom, aberración cromática que crece con la velocidad del scroll, viñeta y grano) y un fluido que deforma la imagen al mover el puntero. También: la cámara abre el ángulo al hacer scroll rápido, los títulos se «decodifican» letra a letra, un sonido ambiente generado en el navegador (viento según la altitud, pájaros de día, grillos de noche, todo amortiguado con la nieve), un cursor acompañante, las esquinas del encuadre y el menú reducido durante el viaje. |
 | **Nuestra historia** | Manuel y Valeria, con polaroids animadas y cifras que cuentan. |
 | **Las casas** | Tarjetas de Maelo, Braña y Teleno, y la ficha de cada una con galería, datos y precio. |
@@ -55,6 +55,7 @@ src/
   i18n.ts             idioma
   journey/journey.ts  el viaje: cámara, luz, nubes, fotos 3D, ruta, nieve y noche
   journey/shaders.ts  terreno con nieve, cielo con estrellas, fotos 3D con quemado
+  journey/titles.ts   titulares 3D (SDF) y etiquetas de las casas
   three/terrainData.ts relieve real compartido por el viaje y el mapa
   sections/journey.ts capítulos, HUD y versión en fotos
   live/scenes.ts      zonas de las casas en la foto de la fachada

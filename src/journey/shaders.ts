@@ -195,7 +195,7 @@ void main() {
   float near = smoothstep(9.0, 0.0, distance(p.xz, uHome.xz));
   gl_PointSize = uSize * (0.5 + aSeed * 0.8 + near * 0.8) / -mv.z;
   vH = clamp((p.y - uLow) / (uHigh - uLow), 0.0, 1.0);
-  vA = uAlpha * (0.55 + 0.45 * sin(uTime * 1.7 + aSeed * 60.0)) * (0.35 + near);
+  vA = uAlpha * (0.6 + 0.4 * sin(uTime * 1.7 + aSeed * 60.0)) * (0.6 + near);
 }`;
 
 export const DUST_FRAG = /* glsl */ `
@@ -206,5 +206,5 @@ void main() {
   float a = smoothstep(0.5, 0.0, d) * vA;
   if (a < 0.01) discard;
   vec3 warm = vec3(1.0, 0.78, 0.45), cold = vec3(0.6, 0.78, 1.0);
-  gl_FragColor = vec4(mix(warm, cold, smoothstep(0.15, 0.7, vH)) * a, a);
+  gl_FragColor = vec4(mix(warm, cold, smoothstep(0.3, 0.85, vH)) * a * 1.6, a);
 }`;

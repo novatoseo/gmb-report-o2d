@@ -5,6 +5,7 @@ import { UNITS } from '../live/scenes';
 import { EXAG, TerrainData } from '../three/terrainData';
 import { TUNE } from '../live/tuning';
 import { Post } from './post';
+import { TITLE_SPECS, Titles } from './titles';
 import { DUST_FRAG, DUST_VERT, PHOTO_FRAG, PHOTO_VERT, SKY_FRAG, SKY_VERT, SNOW_FRAG, SNOW_VERT, TERRAIN_FRAG, TERRAIN_VERT } from './shaders';
 
 // El viaje: una sola escena 3D que el scroll recorre de principio a fin.
@@ -13,27 +14,26 @@ import { DUST_FRAG, DUST_VERT, PHOTO_FRAG, PHOTO_VERT, SKY_FRAG, SKY_VERT, SNOW_
 export interface Chapter { id: string; from: number; to: number }
 
 export const CHAPTERS: Chapter[] = [
-  { id: 'intro', from: 0, to: 0.08 },
-  { id: 'descent', from: 0.08, to: 0.24 },
-  { id: 'house', from: 0.24, to: 0.36 },
-  { id: 'units', from: 0.36, to: 0.47 },
-  { id: 'sunrise', from: 0.47, to: 0.54 },
-  { id: 'golden', from: 0.54, to: 0.61 },
-  { id: 'trail', from: 0.61, to: 0.76 },
-  { id: 'winter', from: 0.76, to: 0.87 },
-  { id: 'night', from: 0.87, to: 1 },
+  { id: 'valley', from: 0, to: 0.24 },
+  { id: 'houses', from: 0.24, to: 0.56 },
+  { id: 'trails', from: 0.56, to: 0.78 },
+  { id: 'silence', from: 0.78, to: 1 },
 ];
+
+/** Tiempos de cada foto: [llega y llena la pantalla, se atraviesa]. */
+const PANEL_T: Record<string, [number, number]> = { otono: [0.27, 0.37], fachada: [0.37, 0.56], atardecer: [0.86, 0.945] };
+/** Gradación de cada foto hacia la hora azul (0 = original, 1 = noche). */
+const PANEL_GRADE: Record<string, number> = { otono: 0.45, fachada: 0.32, atardecer: 0.8 };
 
 /** Paletas de luz a lo largo del viaje. */
 type Light = { p: number; sun: [number, number, number]; sunC: string; sky: string; ground: string; zenith: string; horizon: string; fog: string; night: number; snow: number; fall: number };
+// Una sola identidad: la hora azul. Lo cálido queda para las luces de las casas, la ruta y el final.
 const LIGHTS: Light[] = [
-  { p: 0.0, sun: [0.6, 0.06, -0.8], sunC: '#ffb27a', sky: '#7f86b8', ground: '#3a3036', zenith: '#2b3a78', horizon: '#ffb48a', fog: '#c9a9b8', night: 0, snow: 0, fall: 0 },
-  { p: 0.2, sun: [0.5, 0.35, -0.6], sunC: '#ffe6c4', sky: '#a9c6e6', ground: '#4c4a36', zenith: '#4a86cc', horizon: '#f6e3cc', fog: '#dde3e6', night: 0, snow: 0, fall: 0 },
-  { p: 0.62, sun: [-0.3, 0.55, 0.5], sunC: '#fff2dc', sky: '#bcd4ee', ground: '#4b4a36', zenith: '#3a7ed0', horizon: '#dbe8f2', fog: '#dde6ea', night: 0, snow: 0, fall: 0 },
-  { p: 0.74, sun: [-0.5, 0.3, 0.6], sunC: '#ffd9a8', sky: '#b8c6d8', ground: '#4e4c40', zenith: '#5f86b8', horizon: '#f2d8b8', fog: '#d9dde2', night: 0, snow: 0, fall: 0 },
-  { p: 0.84, sun: [-0.4, 0.25, 0.6], sunC: '#c9d3e0', sky: '#c9d2dc', ground: '#6d7078', zenith: '#8494a8', horizon: '#dfe4ea', fog: '#d6dce3', night: 0, snow: 1, fall: 1 },
-  { p: 0.9, sun: [-0.5, 0.1, 0.6], sunC: '#8a7aa8', sky: '#5a5f86', ground: '#2a2a3a', zenith: '#1b2152', horizon: '#6a5a86', fog: '#3a3f5e', night: 0.6, snow: 0.8, fall: 0.2 },
-  { p: 1.0, sun: [-0.5, -0.1, 0.6], sunC: '#3a4a7a', sky: '#283463', ground: '#10141f', zenith: '#070b1f', horizon: '#26305a', fog: '#141a33', night: 1, snow: 0.6, fall: 0 },
+  { p: 0.0, sun: [-0.75, 0.12, 0.35], sunC: '#a9b8e6', sky: '#6a7cb6', ground: '#2c3150', zenith: '#101c46', horizon: '#9a8db4', fog: '#7a7aa6', night: 0.3, snow: 0, fall: 0 },
+  { p: 0.55, sun: [-0.7, 0.16, 0.4], sunC: '#b4c0e8', sky: '#7084bc', ground: '#30365a', zenith: '#13214e', horizon: '#8d8bb8', fog: '#7378a6', night: 0.32, snow: 0, fall: 0 },
+  { p: 0.8, sun: [-0.6, 0.2, 0.5], sunC: '#9aa8d6', sky: '#6676aa', ground: '#3c4262', zenith: '#0d1838', horizon: '#6f77a6', fog: '#5e6894', night: 0.55, snow: 1, fall: 1 },
+  { p: 0.92, sun: [-0.5, 0.12, 0.6], sunC: '#6c7cb0', sky: '#46558a', ground: '#232a44', zenith: '#070d26', horizon: '#3a4676', fog: '#283258', night: 0.9, snow: 0.85, fall: 0.5 },
+  { p: 1.0, sun: [-0.5, 0.05, 0.6], sunC: '#3a4a7a', sky: '#283463', ground: '#10141f', zenith: '#050918', horizon: '#1f2850', fog: '#141a33', night: 1, snow: 0.7, fall: 0 },
 ];
 
 // Resultado reutilizable de lightAt (sin crear objetos en cada fotograma).
@@ -64,6 +64,7 @@ const ease = (t: number) => t * t * (3 - 2 * t);
 
 interface Panel {
   name: string;
+  grade: number;
   mesh: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
   center: THREE.Vector3;
   loaded: boolean;
@@ -109,7 +110,9 @@ export class Journey {
   private v2 = new THREE.Vector3();
   private up = new THREE.Vector3(0, 1, 0);
   private white = new THREE.Color('#ffffff');
-  private segs = [0.30, 0.36, 0.47, 0.54, 0.61];
+  private titles!: Titles;
+  private activeUnit = -1;
+  private wasNarrow: boolean | null = null;
   private unitIds = ['maelo', 'brana', 'teleno'] as const;
 
   constructor(readonly host: HTMLElement, private reduced: boolean) {
@@ -186,6 +189,13 @@ export class Journey {
     this.makeDust();
     this.makePath();
     this.post = new Post(this.renderer, this.scene, this.camera, innerWidth < 800);
+    this.titles = new Titles(TITLE_SPECS);
+    this.scene.add(this.titles.group);
+    const r0 = this.host.getBoundingClientRect();
+    this.camera.aspect = r0.width / Math.max(1, r0.height);
+    await this.titles.setLang(this.camera.aspect < 0.9);
+    this.titles.layout((p) => this.poseAt(p), this.camera);
+    this.titles.attachLabels(this.panels[1].mesh, 1.6, 0.9);
     onProgress(0.6);
     // Se cargan primero las fotos que se ven antes.
     let n = 0;
@@ -276,7 +286,7 @@ export class Journey {
       depthWrite: false,
       blending: THREE.AdditiveBlending,
       uniforms: {
-        uTime: { value: 0 }, uAlpha: { value: 0 }, uSize: { value: 9 * this.renderer.getPixelRatio() },
+        uTime: { value: 0 }, uAlpha: { value: 0 }, uSize: { value: 26 * this.renderer.getPixelRatio() },
         uLow: { value: (d.meta.elevMin / 1000) * EXAG }, uHigh: { value: (d.meta.elevMax / 1000) * EXAG },
         uHome: { value: this.home.clone() },
       },
@@ -327,9 +337,9 @@ export class Journey {
     c.dir.y = -0.03;
     c.dir.normalize();
     c.start.copy(k24).addScaledVector(c.dir, 2.0);
-    const names = ['otono', 'fachada', 'amanecer', 'camino', 'atardecer'];
+    const names = ['otono', 'fachada', 'atardecer'];
     names.forEach((name, i) => {
-      const aspect = name === 'amanecer' ? 1200 / 675 : 16 / 9;
+      const aspect = 16 / 9;
       const w = 1.6, h = w / aspect;
       const geo = new THREE.PlaneGeometry(w, h, 240, Math.round(240 / aspect));
       const mat = new THREE.ShaderMaterial({
@@ -341,7 +351,7 @@ export class Journey {
           ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog),
           uMap: { value: null }, uAux: { value: null },
           uDepth: { value: 0.22 }, uFocus: { value: 0.5 },
-          uOpacity: { value: 0 }, uPass: { value: 0 }, uNight: { value: 0 }, uGlow: { value: name === 'fachada' ? 0.6 : 0.3 },
+          uOpacity: { value: 0 }, uPass: { value: 0 }, uNight: { value: PANEL_GRADE[name] }, uGlow: { value: name === 'fachada' ? 0.6 : 0.3 },
           uTime: { value: 0 }, uSnow: { value: 0 }, uHiOn: { value: 0 }, uHi: { value: new THREE.Vector4() },
         },
       });
@@ -352,7 +362,7 @@ export class Journey {
       mesh.lookAt(name === 'atardecer' ? center.clone().add(this.finalDir) : center.clone().sub(c.dir));
       mesh.visible = false;
       this.scene.add(mesh);
-      this.panels.push({ name, mesh, center, loaded: false });
+      this.panels.push({ name, grade: PANEL_GRADE[name], mesh, center, loaded: false });
     });
   }
 
@@ -386,44 +396,61 @@ export class Journey {
     const pajares = d.worldLL(42.995, -5.768);
     const valporquero = d.worldLL(42.9042, -5.5542);
     const fill = this.fillDist(1.6, 0.9) * 0.9;
-    const F = this.panels[4].center;
+    const F = this.panels[2].center;
     const keys: { t: number; pos: THREE.Vector3; look: THREE.Vector3 }[] = [
+      // I · El valle: sobre las nubes y descenso por la cordillera
       { t: 0.0, pos: H.clone().add(v(1.5, 9.5, 24)), look: H.clone().add(v(0, 3.2, -10)) },
-      { t: 0.06, pos: H.clone().add(v(0.8, 7.2, 19)), look: H.clone().add(v(0, 2.2, -8)) },
-      { t: 0.13, pos: H.clone().add(v(-3, 4.2, 9)), look: pajares.clone().add(v(0, 0.6, 0)) },
-      { t: 0.19, pos: pajares.clone().add(v(3.5, 2.6, 4.5)), look: H.clone().add(v(0, 0.2, 0)) },
+      { t: 0.08, pos: H.clone().add(v(0.8, 7.2, 19)), look: H.clone().add(v(0, 2.2, -8)) },
+      { t: 0.15, pos: H.clone().add(v(-3, 4.2, 9)), look: pajares.clone().add(v(0, 0.6, 0)) },
+      { t: 0.2, pos: pajares.clone().add(v(3.5, 2.6, 4.5)), look: H.clone().add(v(0, 0.2, 0)) },
       { t: 0.24, pos: valporquero.clone().add(v(-0.2, 1.6, -1.2)), look: H.clone() },
     ];
-    // Pasillo de fotos: llegar, llenar la pantalla y atravesar cada una.
-    const seg = [0.30, 0.36, 0.47, 0.54, 0.61];
-    this.panels.slice(0, 4).forEach((pnl, i) => {
-      const a = seg[i], b = seg[i + 1];
+    // II · Las casas: llegar a cada foto, llenar la pantalla y atravesarla
+    this.panels.slice(0, 2).forEach((pnl) => {
+      const [a, b] = PANEL_T[pnl.name];
       keys.push({ t: a, pos: pnl.center.clone().addScaledVector(c.dir, -fill * 1.35), look: pnl.center.clone().addScaledVector(c.dir, 4) });
       keys.push({ t: a + (b - a) * 0.72, pos: pnl.center.clone().addScaledVector(c.dir, -fill * 0.92), look: pnl.center.clone().addScaledVector(c.dir, 4) });
     });
-    keys.sort((x, y) => x.t - y.t);
-    // Ruta del Faedo de Ciñera: se sigue desde arriba.
+    // III · Desde la puerta: la ruta del Faedo de Ciñera, vista desde arriba
     const tp = this.trailPts;
     const mid = tp[Math.floor(tp.length * 0.55)];
     const end = tp[tp.length - 1];
+    const [na, nb] = PANEL_T.atardecer;
     keys.push(
-      { t: 0.64, pos: H.clone().add(v(1.2, 1.6, 2.4)), look: H.clone().add(v(-1, 0, 0)) },
-      { t: 0.7, pos: mid.clone().add(v(1.4, 1.5, 2.6)), look: mid.clone() },
-      { t: 0.76, pos: end.clone().add(v(2.2, 1.9, 3.2)), look: end.clone().add(v(0.6, 0, 0)) },
-      // Invierno: se sube para ver la sierra nevada
-      { t: 0.82, pos: H.clone().add(v(5, 4.2, 9)), look: H.clone().add(v(-1, 0.8, -6)) },
-      { t: 0.87, pos: H.clone().add(v(2.5, 2.4, 5.5)), look: H.clone().add(v(0, 0.4, -2)) },
-      // Noche: la foto de las casas encendidas llena la pantalla
-      { t: 0.92, pos: F.clone().addScaledVector(this.finalDir, fill * 2.4), look: F.clone() },
-      { t: 0.955, pos: F.clone().addScaledVector(this.finalDir, fill * 0.95), look: F.clone() },
-      // Final: la foto se quema, el valle se deshace en luz y la cámara sube
-      { t: 0.975, pos: H.clone().add(v(1.6, 1.6, 3.4)), look: H.clone().add(v(0, 0.3, 0)) },
-      { t: 1.0, pos: H.clone().add(v(2.6, 3.4, 7.2)), look: H.clone().add(v(-0.4, -0.2, -1.6)) },
+      { t: 0.6, pos: H.clone().add(v(1.2, 1.6, 2.4)), look: H.clone().add(v(-1, 0, 0)) },
+      { t: 0.67, pos: mid.clone().add(v(1.4, 1.5, 2.6)), look: mid.clone() },
+      { t: 0.74, pos: end.clone().add(v(2.2, 1.9, 3.2)), look: end.clone().add(v(0.6, 0, 0)) },
+      // IV · El silencio: nieva sobre la sierra, las casas encendidas y el valle hecho de luz
+      { t: 0.8, pos: H.clone().add(v(5, 4.2, 9)), look: H.clone().add(v(-1, 0.8, -6)) },
+      { t: na, pos: F.clone().addScaledVector(this.finalDir, fill * 2.4), look: F.clone() },
+      { t: na + (nb - na) * 0.75, pos: F.clone().addScaledVector(this.finalDir, fill * 0.95), look: F.clone() },
+      { t: 0.96, pos: H.clone().add(v(1.6, 1.6, 3.4)), look: H.clone().add(v(0, 0.3, 0)) },
+      { t: 0.985, pos: H.clone().add(v(2.0, 2.5, 6.2)), look: H.clone().add(v(-0.6, 0.15, -2.6)) },
+      { t: 1.0, pos: H.clone().add(v(2.0, 2.5, 6.2)), look: H.clone().add(v(-0.6, 0.15, -2.6)) },
     );
     keys.sort((x, y) => x.t - y.t);
     this.pathT = keys.map((k) => k.t);
     this.pathPos = new THREE.CatmullRomCurve3(keys.map((k) => k.pos), false, 'centripetal');
     this.pathLook = new THREE.CatmullRomCurve3(keys.map((k) => k.look), false, 'centripetal');
+    this.titles?.layout((p) => this.poseAt(p), this.camera);
+  }
+
+  /** Posición y mirada de la cámara en un punto del recorrido (sin el balanceo del puntero). */
+  poseAt(p: number) {
+    const u = this.curveU(p);
+    return { pos: this.pathPos.getPoint(u), look: this.pathLook.getPoint(u) };
+  }
+
+  /** Arranca la entrada del primer titular. */
+  startTitles() {
+    this.titles?.start((performance.now() - this.t0) / 1000);
+  }
+
+  /** Cambia el idioma de los titulares 3D. */
+  async setLang() {
+    if (!this.titles) return;
+    await this.titles.setLang(this.camera.aspect < 0.9);
+    this.titles.layout((p) => this.poseAt(p), this.camera);
   }
 
   /** Progreso del scroll → parámetro de la curva (los puntos clave tienen su propio tiempo). */
@@ -445,6 +472,11 @@ export class Journey {
     this.camera.aspect = r.width / r.height;
     this.camera.updateProjectionMatrix();
     this.post?.resize(r.width, r.height);
+    const narrow = this.camera.aspect < 0.9;
+    if (this.titles && narrow !== this.wasNarrow) {
+      this.wasNarrow = narrow;
+      void this.setLang();
+    }
     // Al cambiar de proporción, las fotos se vuelven a encuadrar.
     if (this.pathPos) this.makePath();
   }
@@ -506,7 +538,7 @@ export class Journey {
     tu.uSky.value.copy(L.sky);
     tu.uGround.value.copy(L.ground);
     tu.uSnow.value = L.snow;
-    const dissolve = range(p, 0.962, 0.995);
+    const dissolve = range(p, 0.935, 0.975);
     tu.uDissolve.value = dissolve;
     const bu = this.baseMat.uniforms;
     bu.uSunDir.value.copy(L.sun);
@@ -528,7 +560,7 @@ export class Journey {
     this.sky.position.copy(pos);
 
     // Nubes: se cruzan en el descenso y luego se apartan
-    const cloudOp = 1 - range(p, 0.2, 0.3);
+    const cloudOp = 1 - range(p, 0.2, 0.28);
     const cloudsOn = cloudOp > 0.01;
     for (const s of this.clouds) {
       s.visible = cloudsOn;
@@ -540,38 +572,38 @@ export class Journey {
     }
 
     // Fotos 3D
-    const segs = this.segs;
+    this.activeUnit = -1;
     for (let i = 0; i < this.panels.length; i++) {
       const pnl = this.panels[i];
-      const last = pnl.name === 'atardecer';
-      const a = last ? 0.9 : segs[i], b = last ? 2 : segs[i + 1];
+      const [a, b] = PANEL_T[pnl.name];
       const m = pnl.mesh.material.uniforms;
-      const appear = range(p, a - 0.05, a);
-      const pass = last ? range(p, 0.955, 0.972) : range(p, a + (b - a) * 0.75, b);
-      if (last) {
-        m.uNight.value = Math.min(1, 0.8 * TUNE.night);
-        m.uGlow.value = TUNE.glow;
-      }
+      const appear = range(p, a - 0.04, a);
+      const pass = range(p, a + (b - a) * 0.75, b);
       pnl.mesh.visible = pnl.loaded && appear > 0 && pass < 1;
       if (!pnl.mesh.visible) continue;
       m.uOpacity.value = ease(appear);
       m.uDepth.value = 0.22 * TUNE.move;
       m.uPass.value = pass;
       m.uTime.value = time;
+      m.uNight.value = Math.min(1, pnl.grade * TUNE.night);
+      m.uGlow.value = (pnl.name === 'otono' ? 0.3 : 0.8) * TUNE.glow;
       if (pnl.name === 'fachada') {
-        // Foco sobre Maelo, Braña y Teleno por turnos
+        // Foco sobre Maelo, Braña y Teleno por turnos, con su etiqueta 3D
         const kk = range(p, a + 0.01, a + (b - a) * 0.7) * 3;
-        const [x0, y0, x1, y1] = UNITS[this.unitIds[Math.min(2, Math.floor(kk))]];
+        const unit = Math.min(2, Math.floor(kk));
+        const [x0, y0, x1, y1] = UNITS[this.unitIds[unit]];
         (m.uHi.value as THREE.Vector4).set(x0, 1 - y1, x1, 1 - y0);
-        m.uHiOn.value = Math.min(range(p, a + 0.008, a + 0.02), 1 - range(p, a + (b - a) * 0.68, a + (b - a) * 0.75));
+        const on = Math.min(range(p, a + 0.008, a + 0.02), 1 - range(p, a + (b - a) * 0.68, a + (b - a) * 0.75));
+        m.uHiOn.value = on;
+        if (on > 0.5) this.activeUnit = unit;
       }
     }
 
     // Ruta que se dibuja sola
-    const tr = range(p, 0.635, 0.755);
+    const tr = range(p, 0.6, 0.74);
     const total = this.trail.geometry.index!.count;
     this.trail.geometry.setDrawRange(0, Math.floor((total * tr) / 6) * 6);
-    this.trail.visible = p > 0.62 && p < 0.78;
+    this.trail.visible = p > 0.585 && p < 0.8;
     this.trailHead.visible = tr > 0 && tr < 1 && this.trail.visible;
     if (this.trailHead.visible) this.trailHead.position.copy(this.trailPts[Math.min(this.trailPts.length - 1, Math.floor(tr * (this.trailPts.length - 1)))]);
 
@@ -581,11 +613,14 @@ export class Journey {
     sm.uCam.value.copy(pos);
     sm.uOpacity.value = Math.min(1, L.fall * TUNE.snow);
     this.snow.visible = L.fall > 0.01;
-    this.beam.material.opacity = L.night * 0.7 * (1 - range(p, 0.9, 0.95));
-    const dustA = range(p, 0.958, 0.99);
+    this.beam.material.opacity = Math.max(0.35, L.night) * 0.7 * (1 - range(p, 0.86, 0.9));
+    const dustA = range(p, 0.93, 0.97);
     this.dust.visible = dustA > 0;
     this.dust.material.uniforms.uAlpha.value = dustA;
     this.dust.material.uniforms.uTime.value = time;
+
+    // Titulares 3D
+    this.titles.update(p, time, dt, this.activeUnit);
 
     if (this.post) this.post.render(time, this.reduced ? 0 : this.speed);
     else this.renderer.render(this.scene, this.camera);

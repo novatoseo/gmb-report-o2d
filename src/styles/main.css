@@ -122,7 +122,7 @@ a { color: inherit; }
 }
 
 /* —— 1 · El viaje (3D) —— */
-.journey { position: relative; height: 1400vh; background: #0e1224; }
+.journey { position: relative; height: 900vh; background: #0e1224; }
 .j-sticky {
   position: sticky; top: 0; height: 100svh; overflow: hidden; color: #fff7ea;
   background: linear-gradient(180deg, #2b3a78 0%, #8a7aa8 45%, #ffb48a 75%, #c9a9b8 100%);
@@ -149,6 +149,10 @@ a { color: inherit; }
   text-shadow: 0 4px 40px rgba(7, 11, 31, 0.55);
 }
 .j-title-xl { font-size: clamp(3.4rem, 11vw, 9.4rem); line-height: 0.88; }
+/* Con el 3D activo, los titulares se dibujan en la escena; los de la página quedan para lectores de pantalla. */
+.has-3d-titles .j-chap.is-center, .has-3d-titles .j-chap.is-top { top: auto; bottom: 13vh; translate: none; }
+.has-3d-titles .j-chap.is-center::before, .has-3d-titles .j-chap.is-top::before { display: none; }
+.has-3d-titles .j-chap .j-title { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
 .jw { display: inline-block; white-space: nowrap; }
 .jc { display: inline-block; transform-origin: 50% 100%; will-change: transform; }
 .j-text { font-size: clamp(1rem, 1.35vw, 1.16rem); line-height: 1.55; max-width: 42ch; margin: 0; font-weight: 500; text-shadow: 0 2px 20px rgba(7, 11, 31, 0.7); }

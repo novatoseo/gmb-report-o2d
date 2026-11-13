@@ -204,26 +204,14 @@ export const JOURNEY: Record<string, { eyebrow: L; title: L; text?: L }> = {
     title: { es: 'Tres casas, un mismo lenguaje.', en: 'Three houses, one language.' },
     text: { es: 'Pizarra, madera y grandes ventanales al bosque. Suelo radiante, terraza equipada y el pueblo detrás.', en: 'Slate, timber and big windows onto the forest. Underfloor heating, a furnished terrace and the village behind.' },
   },
-  sunrise: {
-    eyebrow: { es: '07:12 · Amanecer', en: '07:12 · Sunrise' },
-    title: { es: 'El sol sale entre montañas.', en: 'The sun rises between mountains.' },
-    text: { es: '«Despertar viendo el sol salir entre montañas ha sido mágico», escribe un huésped en Google.', en: '“Waking up to the sun rising between the mountains was magical,” writes a Google reviewer.' },
-  },
-  golden: {
-    eyebrow: { es: '19:36 · Hora dorada', en: '19:36 · Golden hour' },
-    title: { es: 'Los caminos salen desde la puerta.', en: 'The trails start at the door.' },
-    text: { es: 'Cinco rutas con track GPX empiezan en las casas: de una hora de paseo a tres hasta el Faedo de Ciñera.', en: 'Five GPX trails start at the houses: from a one-hour stroll to three hours to the Faedo de Ciñera.' },
-  },
+
+
   trail: {
     eyebrow: { es: 'Ruta GPX real · 3 h · media-baja', en: 'Real GPX trail · 3 h · easy-moderate' },
-    title: { es: 'Hasta el Faedo de Ciñera.', en: 'To the Faedo de Ciñera.' },
-    text: { es: 'El Bosque Mejor Conservado de España, a pie desde la casa y pasando por el Pozo Ibarra.', en: 'Spain’s Best Preserved Forest, on foot from the house via Pozo Ibarra.' },
+    title: { es: 'Desde la puerta.', en: 'From the front door.' },
+    text: { es: 'Tres horas a pie hasta el Faedo de Ciñera, el Bosque Mejor Conservado de España. Es una de las cinco rutas con track GPX que salen de las casas.', en: 'A three-hour walk to the Faedo de Ciñera, Spain’s Best Preserved Forest. One of five GPX trails that start at the houses.' },
   },
-  winter: {
-    eyebrow: { es: 'Invierno', en: 'Winter' },
-    title: { es: 'Mismo sitio. Otra estación.', en: 'Same place. Another season.' },
-    text: { es: 'Suelo radiante dentro y la nieve a media hora: Valgrande-Pajares a unos 28 km, San Isidro a 55 minutos.', en: 'Underfloor heating inside and snow half an hour away: Valgrande-Pajares about 28 km, San Isidro 55 minutes.' },
-  },
+
   night: {
     eyebrow: { es: '22:47 · Noche', en: '22:47 · Night' },
     title: { es: 'Tres casas encendidas.', en: 'Three houses, lights on.' },

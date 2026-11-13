@@ -7,34 +7,24 @@ import type { Journey } from '../journey/journey';
 import { Ambience } from '../journey/sound';
 
 // Rangos de scroll de cada texto (deben coincidir con CHAPTERS en journey/journey.ts).
-const BLOCKS: { id: string; from: number; to: number; pos: 'center' | 'left' | 'right' | 'top'; bg: string }[] = [
-  { id: 'intro', from: -1, to: 0.065, pos: 'center', bg: 'atardecer' },
-  { id: 'descent', from: 0.1, to: 0.22, pos: 'left', bg: 'amanecer' },
-  { id: 'house', from: 0.29, to: 0.355, pos: 'left', bg: 'otono' },
-  { id: 'unit-0', from: 0.365, to: 0.393, pos: 'right', bg: 'fachada' },
-  { id: 'unit-1', from: 0.393, to: 0.418, pos: 'right', bg: 'fachada' },
-  { id: 'unit-2', from: 0.418, to: 0.445, pos: 'right', bg: 'fachada' },
-  { id: 'sunrise', from: 0.475, to: 0.535, pos: 'left', bg: 'amanecer' },
-  { id: 'golden', from: 0.545, to: 0.605, pos: 'left', bg: 'camino' },
-  { id: 'trail', from: 0.65, to: 0.76, pos: 'left', bg: 'otono' },
-  { id: 'winter', from: 0.785, to: 0.865, pos: 'center', bg: 'invierno' },
-  { id: 'night', from: 0.92, to: 0.957, pos: 'top', bg: 'atardecer' },
-  { id: 'outro', from: 0.972, to: 2, pos: 'center', bg: 'invierno' },
+const BLOCKS: { id: string; from: number; to: number; pos: 'center' | 'left' | 'right' | 'top'; bg: string; moment: number }[] = [
+  { id: 'intro', from: -1, to: 0.06, pos: 'center', bg: 'atardecer', moment: 0 },
+  { id: 'descent', from: 0.1, to: 0.22, pos: 'left', bg: 'amanecer', moment: 0 },
+  { id: 'house', from: 0.265, to: 0.34, pos: 'left', bg: 'otono', moment: 1 },
+  // Mismos tercios que el foco de la fachada (journey.ts: de 0,38 a 0,503)
+  { id: 'unit-0', from: 0.38, to: 0.421, pos: 'right', bg: 'fachada', moment: 1 },
+  { id: 'unit-1', from: 0.421, to: 0.462, pos: 'right', bg: 'fachada', moment: 1 },
+  { id: 'unit-2', from: 0.462, to: 0.503, pos: 'right', bg: 'fachada', moment: 1 },
+  { id: 'trail', from: 0.6, to: 0.74, pos: 'left', bg: 'otono', moment: 2 },
+  { id: 'night', from: 0.875, to: 0.93, pos: 'top', bg: 'atardecer', moment: 3 },
+  { id: 'outro', from: 0.96, to: 2, pos: 'center', bg: 'invierno', moment: 3 },
 ];
-const NAMES: Record<string, { es: string; en: string }> = {
-  intro: { es: 'Amanecer sobre las nubes', en: 'Dawn above the clouds' },
-  descent: { es: 'El descenso', en: 'The descent' },
-  house: { es: 'La casa', en: 'The house' },
-  'unit-0': { es: 'Maelo', en: 'Maelo' },
-  'unit-1': { es: 'Braña', en: 'Braña' },
-  'unit-2': { es: 'Teleno', en: 'Teleno' },
-  sunrise: { es: 'Amanecer', en: 'Sunrise' },
-  golden: { es: 'Hora dorada', en: 'Golden hour' },
-  trail: { es: 'La ruta', en: 'The trail' },
-  winter: { es: 'Invierno', en: 'Winter' },
-  night: { es: 'Noche', en: 'Night' },
-  outro: { es: 'El valle, hecho de luz', en: 'The valley, made of light' },
-};
+const MOMENTS: { es: string; en: string }[] = [
+  { es: 'El valle', en: 'The valley' },
+  { es: 'Las casas', en: 'The houses' },
+  { es: 'Desde la puerta', en: 'From the door' },
+  { es: 'El silencio', en: 'The silence' },
+];
 
 // Efecto «decodificar»: cada carácter pasa por símbolos al azar antes de quedarse fijo.
 const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789·/°#%&*+=<>';
@@ -154,7 +144,7 @@ export function initJourney(reduced: boolean) {
     const title = [...next.querySelectorAll<HTMLElement>('.j-title .jc')];
     const eyebrow = [...next.querySelectorAll<HTMLElement>('.j-eyebrow .jc')];
     gsap.fromTo(title, { yPercent: 60, opacity: 0, filter: 'blur(8px)' }, { yPercent: 0, opacity: 1, filter: 'blur(0px)', duration: 0.7, stagger: 0.018, ease: 'expo.out' });
-    scramble(title, 0, 0.022);
+    if (!section.classList.contains('has-3d-titles')) scramble(title, 0, 0.022);
     scramble(eyebrow, 0.05, 0.012);
     gsap.fromTo(next.querySelectorAll('.j-text, .j-actions'), { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, stagger: 0.08, delay: 0.3, ease: 'power2.out' });
   };
@@ -168,11 +158,13 @@ export function initJourney(reduced: boolean) {
     const b = BLOCKS.find((x) => p >= x.from && p < x.to);
     show(b ? b.id : '');
     const id = b?.id ?? BLOCKS.slice().reverse().find((x) => p >= x.from)?.id ?? 'intro';
-    hud.querySelector('.j-name')!.textContent = `${String(BLOCKS.findIndex((x) => x.id === id) + 1).padStart(2, '0')} / ${BLOCKS.length} · ${tr(NAMES[id])}`;
+    const moment = BLOCKS.find((x) => x.id === id)?.moment ?? 0;
+    hud.querySelector('.j-name')!.textContent = `${String(moment + 1).padStart(2, '0')} / ${String(MOMENTS.length).padStart(2, '0')} · ${tr(MOMENTS[moment])}`;
   };
   onLang(() => {
     render();
     if (!isStatic) update(last);
+    void engine?.setLang();
   });
 
   let last = 0;
@@ -219,11 +211,12 @@ export function initJourney(reduced: boolean) {
       engine = j;
       j.p = last;
       sticky.classList.add('is-ready');
+      section.classList.add('has-3d-titles');
       // Salida de la precarga: el contador sube y la cortina se abre.
       gsap.timeline({ delay: 0.5 })
         .to(pre.querySelectorAll('p, .j-pre-bar'), { yPercent: -60, opacity: 0, duration: 0.6, stagger: 0.05, ease: 'power3.in' })
         .to(pre, { clipPath: 'inset(0 0 100% 0)', duration: 1.1, ease: 'expo.inOut' }, '-=0.2')
-        .add(() => { pre.hidden = true; active = ''; update(last); });
+        .add(() => { pre.hidden = true; active = ''; update(last); j.startTitles(); });
       const r = section.getBoundingClientRect();
       if (r.top < innerHeight && r.bottom > 0) j.start();
       if (location.search.includes('gl=force')) (window as unknown as { __journey: Journey }).__journey = j;
