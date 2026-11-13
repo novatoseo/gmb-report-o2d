@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>La Finca del Valle · Casas de diseño en Vegacervera, León (concepto)</title>
+  <meta name="description" content="Concepto de rediseño ilustrado e interactivo para La Finca del Valle: tres casas rurales de diseño en el Valle de Vegacervera, Reserva de la Biosfera de los Argüellos, León." />
+  <meta name="robots" content="noindex" />
+  <meta name="theme-color" content="#3A4432" />
+  <meta property="og:title" content="La Finca del Valle · concepto de rediseño" />
+  <meta property="og:description" content="Tres casas de diseño en la montaña de León. Un valle que cambia con la hora del día." />
+  <meta property="og:image" content="/photos/hero/slide-01-1200.webp" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LodgingBusiness",
+    "name": "La Finca del Valle",
+    "description": "Tres casas rurales de diseño (Maelo, Braña y Teleno) en el Valle de Vegacervera, Reserva de la Biosfera de los Argüellos.",
+    "telephone": "+34 658 893 770",
+    "email": "lafincadelvalle01@gmail.com",
+    "address": { "@type": "PostalAddress", "streetAddress": "Barrio Abajo, s/n", "postalCode": "24836", "addressLocality": "Valle de Vegacervera", "addressRegion": "León", "addressCountry": "ES" },
+    "checkinTime": "16:00",
+    "checkoutTime": "12:00",
+    "petsAllowed": "Bajo petición",
+    "priceRange": "desde 130 € / noche",
+    "aggregateRating": { "@type": "AggregateRating", "ratingValue": "5.0", "reviewCount": "44", "bestRating": "5" }
+  }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#historia" data-i18n="skip">Saltar al contenido</a>
+
+  <header class="nav" id="nav">
+    <a class="brand" href="#inicio" aria-label="La Finca del Valle">
+      <svg viewBox="0 0 48 32" aria-hidden="true"><path d="M2 30V16L11 7l9 9v14M20 30V14h8v16M28 30V16l9-9 9 9v14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M6 30v-9h10v9M32 30v-9h10v9" fill="currentColor" opacity=".35"/></svg>
+      <span>La Finca <em>del Valle</em></span>
+    </a>
+    <nav class="nav-links" id="nav-links" aria-label="Principal">
+      <a href="#dia" data-i18n="navDay">Un día</a>
+      <a href="#casas" data-i18n="navHouses">Casas</a>
+      <a href="#entorno" data-i18n="navMap">Entorno</a>
+      <a href="#estaciones" data-i18n="navGallery">Estaciones</a>
+      <div class="lang" role="group" aria-label="Idioma / Language">
+        <button type="button" data-lang="es">ES</button>
+        <button type="button" data-lang="en">EN</button>
+      </div>
+      <a class="btn btn-sun" href="#reservar" data-i18n="navBook">Reservar</a>
+    </nav>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="nav-links"><span></span><span></span><span class="sr" data-i18n="menu">Menú</span></button>
+  </header>
+
+  <main>
+    <!-- 1 · HERO -->
+    <section class="hero scene" id="inicio" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow" data-i18n="heroEyebrow">Valle de Vegacervera · León</p>
+        <h1 id="hero-title" class="display"><span class="line" data-i18n="heroTitleA">La Finca</span><span class="line accent" data-i18n="heroTitleB">del Valle</span></h1>
+        <p class="lead" data-i18n="heroLead">Tres casas de diseño en la Reserva de la Biosfera de los Argüellos, a 35 minutos de León. Y el silencio empieza aquí.</p>
+        <div class="actions">
+          <a class="btn btn-sun" href="#reservar" data-i18n="heroCta">Reservar estancia</a>
+          <a class="btn btn-ghost" href="#casas" data-i18n="heroCta2">Conocer las casas</a>
+        </div>
+      </div>
+      <div class="sky-dial" id="sky-dial">
+        <p class="dial-now"><span data-i18n="heroNow">Ahora mismo en el valle</span> · <strong id="dial-time">--:--</strong> · <span id="dial-phase"></span></p>
+        <div class="dial-row">
+          <label class="sr" for="dial-range" data-i18n="heroScrub">Mueve el sol</label>
+          <input id="dial-range" type="range" min="0" max="23.99" step="0.01" value="12" />
+          <button type="button" class="dial-play" id="dial-play" data-i18n-attr="aria-label:heroPlay;title:heroPlay">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path class="ic-play" d="M8 5v14l11-7z"/><path class="ic-pause" d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="discount" aria-hidden="true"><span>−35%</span><small data-i18n="stamp">reservando en la web</small></div>
+      <a class="scroll-hint" href="#historia"><span data-i18n="heroHint">Desliza: el valle cambia contigo</span><i aria-hidden="true"></i></a>
+    </section>
+
+    <!-- 2 · HISTORIA -->
+    <section class="story paper" id="historia" aria-labelledby="story-title">
+      <div class="wrap story-grid">
+        <div class="story-text">
+          <p class="eyebrow" data-i18n="storyEyebrow">Nuestra historia</p>
+          <h2 id="story-title" class="h2" data-split data-i18n="storyTitle">Hola, somos Manuel y Valeria.</h2>
+          <p class="body-lg" data-reveal data-i18n="storyText">Después de andar un largo camino juntos, decidimos dar un gran cambio a nuestras vidas. Buscábamos naturaleza, tranquilidad, buena mesa y buena gente, y lo encontramos aquí, en plena montaña central de León. Cada espacio y cada detalle está pensado con cariño. Esperamos que os guste tanto como a nosotros.</p>
+          <p class="signature" data-reveal>Manuel &amp; Valeria</p>
+        </div>
+        <div class="story-photos" aria-hidden="true">
+          <figure class="polaroid p1" data-tilt="-6"><img src="/photos/hero/slide-03.webp" alt="" loading="lazy" width="1920" height="1086" /></figure>
+          <figure class="polaroid p2" data-tilt="5"><img src="/photos/brana/salon-ventanal.webp" alt="" loading="lazy" width="1920" height="1080" /></figure>
+          <svg class="doodle" viewBox="0 0 120 60"><path d="M4 50 C30 10 60 60 116 8" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="6 8"/><path d="M104 6 l12 2 l-4 11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        </div>
+      </div>
+      <ul class="wrap stats">
+        <li><strong data-count="3">3</strong><span data-i18n="statHouses">casas de diseño</span></li>
+        <li><strong data-count="100" data-suffix="%">100%</strong><span data-i18n="statFloor">suelo radiante</span></li>
+        <li><strong>∞</strong><span data-i18n="statSilence">silencio de montaña</span></li>
+        <li><strong data-count="5" data-decimals="1">5,0</strong><span data-i18n="statGoogle">en Google · 44 reseñas</span></li>
+      </ul>
+    </section>
+
+    <!-- 3 · UN DÍA EN LA FINCA -->
+    <section class="day" id="dia" aria-labelledby="day-title">
+      <div class="day-sticky scene" id="day-scene">
+        <div class="day-head">
+          <p class="eyebrow" data-i18n="dayEyebrow">Un día en la finca</p>
+          <h2 id="day-title" class="h2" data-i18n="dayTitle">Del primer café a la última estrella.</h2>
+        </div>
+        <div class="day-moments" id="day-moments"></div>
+        <div class="day-clock" aria-hidden="true">
+          <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" class="track"/><circle cx="60" cy="60" r="52" class="fill" id="clock-fill" pathLength="1"/></svg>
+          <strong id="clock-time">07:00</strong>
+        </div>
+        <ol class="day-dots" id="day-dots"></ol>
+        <p class="day-hint" data-i18n="dayHint">Sigue bajando: el sol avanza contigo</p>
+      </div>
+    </section>
+
+    <!-- 4 · LAS CASAS -->
+    <section class="houses paper" id="casas" aria-labelledby="houses-title">
+      <div class="wrap section-head">
+        <p class="eyebrow" data-i18n="housesEyebrow">Las casas</p>
+        <h2 id="houses-title" class="h2" data-split data-i18n="housesTitle">Un edificio, tres caracteres.</h2>
+        <p class="body-lg" data-reveal data-i18n="housesLead">Maelo, Braña y Teleno comparten arquitectura y entorno. Toca una ventana para entrar.</p>
+      </div>
+      <div class="wrap">
+        <div class="facade scene" id="facade">
+          <div class="facade-hits" id="facade-hits"></div>
+        </div>
+        <div class="house-cards" id="house-cards"></div>
+      </div>
+    </section>
+
+    <!-- 5 · MAPA -->
+    <section class="map-sec" id="entorno" aria-labelledby="map-title">
+      <div class="wrap section-head">
+        <p class="eyebrow" data-i18n="mapEyebrow">Alrededor</p>
+        <h2 id="map-title" class="h2" data-split data-i18n="mapTitle">Todo el valle, desde la puerta.</h2>
+        <p class="body-lg" data-reveal data-i18n="mapLead">Cuevas, hayedos, desfiladeros, nieve y buena mesa. Elige un sitio y te trazamos el camino.</p>
+      </div>
+      <div class="wrap map-grid">
+        <div class="map-col">
+          <div class="chips" id="map-chips" role="group"></div>
+          <div class="map" id="map"></div>
+        </div>
+        <aside class="map-card" id="map-card" aria-live="polite"></aside>
+      </div>
+    </section>
+
+    <!-- 6 · ESTACIONES -->
+    <section class="gallery paper" id="estaciones" aria-labelledby="gallery-title">
+      <div class="wrap section-head row">
+        <div>
+          <p class="eyebrow" data-i18n="galleryEyebrow">Cuatro estaciones</p>
+          <h2 id="gallery-title" class="h2" data-split data-i18n="galleryTitle">Mismo sitio. Otra estación.</h2>
+          <p class="body-lg" data-reveal data-i18n="galleryLead">Ninguna foto está tomada lejos: es el valle que se ve desde la puerta. Lo que cambia es la estación.</p>
+        </div>
+        <div class="gallery-ctrl">
+          <div class="chips" id="season-chips" role="group"></div>
+          <div class="arrows">
+            <button type="button" class="round" id="g-prev" data-i18n-attr="aria-label:prev">←</button>
+            <button type="button" class="round" id="g-next" data-i18n-attr="aria-label:next">→</button>
+          </div>
+        </div>
+      </div>
+      <div class="strip" id="strip" data-lenis-prevent-horizontal></div>
+    </section>
+
+    <!-- 7 · OPINIONES -->
+    <section class="reviews" id="opiniones" aria-labelledby="reviews-title">
+      <div class="wrap section-head center">
+        <p class="eyebrow" data-i18n="reviewsEyebrow">Opiniones</p>
+        <h2 id="reviews-title" class="h2" data-split data-i18n="reviewsTitle">Lo que dicen al irse.</h2>
+        <div class="badges" data-reveal>
+          <a href="https://www.google.com/search?q=La+Finca+del+Valle+Vegacervera" target="_blank" rel="noopener"><span class="stars" aria-hidden="true">★★★★★</span> <span data-i18n="reviewsBadge1">5,0 en Google · 44 reseñas</span></a>
+          <a href="https://www.booking.com/hotel/es/la-finca-del-valle.html" target="_blank" rel="noopener"><span class="ten" aria-hidden="true">10</span> <span data-i18n="reviewsBadge2">«Excepcional» en Booking.com</span></a>
+        </div>
+      </div>
+      <div class="wrap notes" id="notes"></div>
+    </section>
+
+    <!-- 8 · RESERVA -->
+    <section class="book paper" id="reservar" aria-labelledby="book-title">
+      <div class="wrap section-head">
+        <p class="eyebrow" data-i18n="bookEyebrow">Reservar</p>
+        <h2 id="book-title" class="h2" data-split data-i18n="bookTitle">Tu refugio te espera.</h2>
+        <p class="body-lg" data-reveal data-i18n="bookLead">Elige casa, fechas y huéspedes. Te calculamos una estimación y te llevamos al motor de reservas con el 35 % de descuento web.</p>
+      </div>
+      <div class="wrap book-grid">
+        <form class="book-form" id="book-form" onsubmit="return false">
+          <fieldset>
+            <legend><b>01</b> <span data-i18n="step1">Casa</span></legend>
+            <div class="house-pick" id="house-pick"></div>
+          </fieldset>
+          <fieldset>
+            <legend><b>02</b> <span data-i18n="step2">Fechas</span></legend>
+            <div class="cal" id="cal"></div>
+          </fieldset>
+          <fieldset>
+            <legend><b>03</b> <span data-i18n="step3">Huéspedes</span></legend>
+            <div class="stepper">
+              <button type="button" class="round" id="g-minus" aria-label="−">−</button>
+              <output id="guests" aria-live="polite">2</output>
+              <button type="button" class="round" id="g-plus" aria-label="+">+</button>
+            </div>
+            <p class="fine" data-i18n="extraBed">La 5.ª plaza es una cama supletoria bajo petición.</p>
+          </fieldset>
+        </form>
+        <aside class="ticket" id="ticket" aria-live="polite"></aside>
+      </div>
+      <div class="wrap faq">
+        <h3 class="h3" data-i18n="faqTitle">Preguntas rápidas</h3>
+        <div id="faq"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" id="contacto">
+    <svg class="footer-ridge" viewBox="0 0 1600 160" preserveAspectRatio="none" aria-hidden="true"><path d="M0 160 L0 90 L120 60 L200 84 L300 20 L380 70 L470 40 L560 96 L700 30 L780 70 L880 14 L990 80 L1100 40 L1210 92 L1330 34 L1440 86 L1600 50 L1600 160Z"/></svg>
+    <div class="wrap footer-grid">
+      <div>
+        <p class="footer-brand">La Finca <em>del Valle</em></p>
+        <p class="muted" data-i18n="footerTag">Reserva de la Biosfera de los Argüellos</p>
+      </div>
+      <address id="contact"></address>
+    </div>
+    <p class="wrap concept" data-i18n="footerConcept">Concepto de rediseño no oficial. Textos, datos y fotografías: La Finca del Valle.</p>
+  </footer>
+
+  <dialog class="house-dialog" id="house-dialog" aria-labelledby="hd-title"></dialog>
+  <dialog class="lightbox" id="lightbox" aria-label="Galería"></dialog>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
