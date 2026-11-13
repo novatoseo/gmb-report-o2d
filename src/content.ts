@@ -226,8 +226,13 @@ export const JOURNEY: Record<string, { eyebrow: L; title: L; text?: L }> = {
   },
   night: {
     eyebrow: { es: '22:47 · Noche', en: '22:47 · Night' },
+    title: { es: 'Tres casas encendidas.', en: 'Three houses, lights on.' },
+    text: { es: 'Sin ruido ni luces de ciudad: solo el valle y el cielo de los Argüellos encima.', en: 'No noise, no city lights: just the valley and the Argüellos sky above.' },
+  },
+  outro: {
+    eyebrow: { es: '42.889° N · 5.581° W · Valle de Vegacervera', en: '42.889° N · 5.581° W · Vegacervera Valley' },
     title: { es: 'Y el silencio empieza aquí.', en: 'And this is where the silence begins.' },
-    text: { es: 'Sin ruido ni luces de ciudad. Las tres casas encendidas y el cielo de los Argüellos encima.', en: 'No noise, no city lights. The three houses glowing and the Argüellos sky above.' },
+    text: { es: 'Tres casas de diseño para cuatro personas, desde 130 € la noche.', en: 'Three design houses for four guests, from €130 a night.' },
   },
 };
 
@@ -338,6 +343,9 @@ export const UI = {
   navHouses: { es: 'Casas', en: 'Houses' },
   navDay: { es: 'El viaje', en: 'The journey' },
   journeyLoading: { es: 'Cargando el valle', en: 'Loading the valley' },
+  preNote: { es: 'Cargando el relieve real del valle', en: 'Loading the valley’s real relief' },
+  soundOn: { es: 'Activar sonido', en: 'Turn sound on' },
+  soundOff: { es: 'Silenciar', en: 'Mute' },
   journeyStart: { es: 'Baja para empezar el viaje', en: 'Scroll to start the journey' },
   journeyFallback: { es: 'Tu dispositivo muestra la versión en fotos del viaje.', en: 'Your device shows the photo version of the journey.' },
   navMap: { es: 'Entorno', en: 'Around' },

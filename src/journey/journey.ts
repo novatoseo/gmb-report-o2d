@@ -4,7 +4,8 @@ import { FINCA } from '../content';
 import { UNITS } from '../live/scenes';
 import { EXAG, TerrainData } from '../three/terrainData';
 import { TUNE } from '../live/tuning';
-import { PHOTO_FRAG, PHOTO_VERT, SKY_FRAG, SKY_VERT, SNOW_FRAG, SNOW_VERT, TERRAIN_FRAG, TERRAIN_VERT } from './shaders';
+import { Post } from './post';
+import { DUST_FRAG, DUST_VERT, PHOTO_FRAG, PHOTO_VERT, SKY_FRAG, SKY_VERT, SNOW_FRAG, SNOW_VERT, TERRAIN_FRAG, TERRAIN_VERT } from './shaders';
 
 // El viaje: una sola escena 3D que el scroll recorre de principio a fin.
 // Unidades: kilómetros. Todo lo que cambia con el scroll depende de `p` (0–1).
@@ -35,21 +36,27 @@ const LIGHTS: Light[] = [
   { p: 1.0, sun: [-0.5, -0.1, 0.6], sunC: '#3a4a7a', sky: '#283463', ground: '#10141f', zenith: '#070b1f', horizon: '#26305a', fog: '#141a33', night: 1, snow: 0.6, fall: 0 },
 ];
 
-const tmpA = new THREE.Color();
-const tmpB = new THREE.Color();
+// Resultado reutilizable de lightAt (sin crear objetos en cada fotograma).
+const LOUT = {
+  sun: new THREE.Vector3(), sunC: new THREE.Color(), sky: new THREE.Color(), ground: new THREE.Color(),
+  zenith: new THREE.Color(), horizon: new THREE.Color(), fog: new THREE.Color(), night: 0, snow: 0, fall: 0,
+};
+const PAL = LIGHTS.map((l) => ({
+  ...l,
+  sunV: new THREE.Vector3(...l.sun).normalize(),
+  c: { sunC: new THREE.Color(l.sunC), sky: new THREE.Color(l.sky), ground: new THREE.Color(l.ground), zenith: new THREE.Color(l.zenith), horizon: new THREE.Color(l.horizon), fog: new THREE.Color(l.fog) },
+}));
 function lightAt(p: number) {
   let i = 0;
-  while (i < LIGHTS.length - 2 && LIGHTS[i + 1].p <= p) i++;
-  const a = LIGHTS[i], b = LIGHTS[i + 1];
+  while (i < PAL.length - 2 && PAL[i + 1].p <= p) i++;
+  const a = PAL[i], b = PAL[i + 1];
   const t = THREE.MathUtils.smoothstep(p, a.p, b.p);
-  const col = (k: 'sunC' | 'sky' | 'ground' | 'zenith' | 'horizon' | 'fog') => tmpA.set(a[k]).lerp(tmpB.set(b[k]), t).clone();
-  return {
-    sun: new THREE.Vector3(...a.sun).lerp(new THREE.Vector3(...b.sun), t).normalize(),
-    sunC: col('sunC'), sky: col('sky'), ground: col('ground'), zenith: col('zenith'), horizon: col('horizon'), fog: col('fog'),
-    night: THREE.MathUtils.lerp(a.night, b.night, t),
-    snow: THREE.MathUtils.lerp(a.snow, b.snow, t),
-    fall: THREE.MathUtils.lerp(a.fall, b.fall, t),
-  };
+  LOUT.sun.copy(a.sunV).lerp(b.sunV, t).normalize();
+  for (const k of ['sunC', 'sky', 'ground', 'zenith', 'horizon', 'fog'] as const) LOUT[k].copy(a.c[k]).lerp(b.c[k], t);
+  LOUT.night = THREE.MathUtils.lerp(a.night, b.night, t);
+  LOUT.snow = THREE.MathUtils.lerp(a.snow, b.snow, t);
+  LOUT.fall = THREE.MathUtils.lerp(a.fall, b.fall, t);
+  return LOUT;
 }
 
 const range = (p: number, a: number, b: number) => THREE.MathUtils.clamp((p - a) / (b - a), 0, 1);
@@ -90,6 +97,20 @@ export class Journey {
   private shown = 0;
   private running = false;
   onHud?: (h: { lat: number; lon: number; alt: number; p: number }) => void;
+  /** Estado para el sonido ambiente: altitud (km), día, noche y nieve (0–1). */
+  onMix?: (m: { alt: number; day: number; night: number; snow: number; speed: number }) => void;
+  private post: Post | null = null;
+  private dust!: THREE.Points<THREE.BufferGeometry, THREE.ShaderMaterial>;
+  private baseMat!: THREE.ShaderMaterial;
+  private prevShown = 0;
+  private speed = 0;
+  private hudT = 0;
+  private v1 = new THREE.Vector3();
+  private v2 = new THREE.Vector3();
+  private up = new THREE.Vector3(0, 1, 0);
+  private white = new THREE.Color('#ffffff');
+  private segs = [0.30, 0.36, 0.47, 0.54, 0.61];
+  private unitIds = ['maelo', 'brana', 'teleno'] as const;
 
   constructor(readonly host: HTMLElement, private reduced: boolean) {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
@@ -110,7 +131,7 @@ export class Journey {
 
   async init(onProgress: (f: number) => void) {
     this.data = await TerrainData.load();
-    onProgress(0.4);
+    onProgress(0.45);
     const d = this.data;
     this.home = d.worldLL(FINCA.lat, FINCA.lon);
 
@@ -128,12 +149,14 @@ export class Journey {
         uGround: { value: new THREE.Color('#4b4a36') },
         uSnow: { value: 0 },
         uTime: { value: 0 },
+        uDissolve: { value: 0 },
       },
     });
     d.color.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
     this.scene.add(new THREE.Mesh(d.geometry(innerWidth < 800 ? 383 : 511), this.terrainMat));
-    const base = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), this.terrainMat.clone());
-    base.material.uniforms.uMap.value = d.color;
+    this.baseMat = this.terrainMat.clone();
+    const base = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), this.baseMat);
+    this.baseMat.uniforms.uMap.value = d.color;
     base.rotateX(-Math.PI / 2);
     base.position.y = (d.meta.elevMin / 1000) * EXAG - 0.15;
     this.scene.add(base);
@@ -160,11 +183,16 @@ export class Journey {
     this.makeBeam();
     this.makeTrail();
     this.makePanels();
+    this.makeDust();
     this.makePath();
-    onProgress(0.7);
+    this.post = new Post(this.renderer, this.scene, this.camera, innerWidth < 800);
+    onProgress(0.6);
     // Se cargan primero las fotos que se ven antes.
-    for (const pnl of this.panels) await this.loadPanel(pnl);
-    onProgress(1);
+    let n = 0;
+    for (const pnl of this.panels) {
+      await this.loadPanel(pnl);
+      onProgress(0.7 + (0.3 * ++n) / this.panels.length);
+    }
 
     new ResizeObserver(() => this.resize()).observe(this.host);
     this.resize();
@@ -221,6 +249,41 @@ export class Journey {
     }));
     this.snow.frustumCulled = false;
     this.scene.add(this.snow);
+  }
+
+  private makeDust() {
+    const d = this.data;
+    const nx = innerWidth < 800 ? 150 : 230;
+    const ny = Math.round((nx * d.H) / d.W);
+    const pos = new Float32Array(nx * ny * 3);
+    const seed = new Float32Array(nx * ny);
+    let i = 0;
+    for (let y = 0; y < ny; y++) {
+      for (let x = 0; x < nx; x++) {
+        const u = (x + Math.random() * 0.8) / nx, v = (y + Math.random() * 0.8) / ny;
+        const w = d.world(u, v, 0.02);
+        pos.set([w.x, w.y, w.z], i * 3);
+        seed[i++] = Math.random();
+      }
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
+    this.dust = new THREE.Points(geo, new THREE.ShaderMaterial({
+      vertexShader: DUST_VERT,
+      fragmentShader: DUST_FRAG,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      uniforms: {
+        uTime: { value: 0 }, uAlpha: { value: 0 }, uSize: { value: 9 * this.renderer.getPixelRatio() },
+        uLow: { value: (d.meta.elevMin / 1000) * EXAG }, uHigh: { value: (d.meta.elevMax / 1000) * EXAG },
+        uHome: { value: this.home.clone() },
+      },
+    }));
+    this.dust.frustumCulled = false;
+    this.dust.visible = false;
+    this.scene.add(this.dust);
   }
 
   private makeBeam() {
@@ -351,8 +414,11 @@ export class Journey {
       { t: 0.82, pos: H.clone().add(v(5, 4.2, 9)), look: H.clone().add(v(-1, 0.8, -6)) },
       { t: 0.87, pos: H.clone().add(v(2.5, 2.4, 5.5)), look: H.clone().add(v(0, 0.4, -2)) },
       // Noche: la foto de las casas encendidas llena la pantalla
-      { t: 0.93, pos: F.clone().addScaledVector(this.finalDir, fill * 2.4), look: F.clone() },
-      { t: 1.0, pos: F.clone().addScaledVector(this.finalDir, fill * 0.95), look: F.clone() },
+      { t: 0.92, pos: F.clone().addScaledVector(this.finalDir, fill * 2.4), look: F.clone() },
+      { t: 0.955, pos: F.clone().addScaledVector(this.finalDir, fill * 0.95), look: F.clone() },
+      // Final: la foto se quema, el valle se deshace en luz y la cámara sube
+      { t: 0.975, pos: H.clone().add(v(1.6, 1.6, 3.4)), look: H.clone().add(v(0, 0.3, 0)) },
+      { t: 1.0, pos: H.clone().add(v(2.6, 3.4, 7.2)), look: H.clone().add(v(-0.4, -0.2, -1.6)) },
     );
     keys.sort((x, y) => x.t - y.t);
     this.pathT = keys.map((k) => k.t);
@@ -378,6 +444,7 @@ export class Journey {
     this.renderer.setSize(r.width, r.height, false);
     this.camera.aspect = r.width / r.height;
     this.camera.updateProjectionMatrix();
+    this.post?.resize(r.width, r.height);
     // Al cambiar de proporción, las fotos se vuelven a encuadrar.
     if (this.pathPos) this.makePath();
   }
@@ -399,11 +466,15 @@ export class Journey {
 
   frame() {
     const time = (performance.now() - this.t0) / 1000;
-    const dt = Math.min(0.25, time - this.lastTime);
+    const dt = Math.max(0.001, Math.min(0.25, time - this.lastTime));
     this.lastTime = time;
     // Suavizado cinematográfico del progreso (por tiempo, igual a cualquier tasa de fotogramas)
     this.shown += (this.p - this.shown) * (this.reduced ? 1 : 1 - Math.exp(-dt * 4.5));
     const p = this.shown;
+    // Velocidad del scroll: deforma la cámara y separa los colores
+    const rawSpeed = Math.min(1, (Math.abs(p - this.prevShown) / dt) * 6);
+    this.prevShown = p;
+    this.speed += (rawSpeed - this.speed) * (1 - Math.exp(-dt * 6));
     const pt = this.pointer;
     const k = 1 - Math.exp(-dt * 3);
     pt.x += (pt.tx - pt.x) * k;
@@ -411,17 +482,21 @@ export class Journey {
 
     // Cámara
     const u = this.curveU(p);
-    const pos = this.pathPos.getPoint(u);
-    const look = this.pathLook.getPoint(u);
-    const drift = this.reduced ? 0 : 1;
-    const right = new THREE.Vector3().subVectors(look, pos).cross(new THREE.Vector3(0, 1, 0)).normalize();
-    pos.addScaledVector(right, (pt.x * 0.06 + Math.sin(time * 0.25) * 0.02) * drift * TUNE.move);
-    pos.y += (-pt.y * 0.04 + Math.sin(time * 0.31) * 0.01) * drift * TUNE.move;
-    // No atravesar el suelo
-    const [cu, cv] = this.data.toUv(pos);
+    const pos = this.pathPos.getPoint(u, this.v1);
+    const look = this.pathLook.getPoint(u, this.v2);
+    const drift = this.reduced ? 0 : TUNE.move;
+    this.camera.position.subVectors(look, pos).cross(this.up).normalize();
+    pos.addScaledVector(this.camera.position, (pt.x * 0.06 + Math.sin(time * 0.25) * 0.02) * drift);
+    pos.y += (-pt.y * 0.04 + Math.sin(time * 0.31) * 0.01) * drift;
+    const cu = pos.x / this.data.W + 0.5, cv = pos.z / this.data.H + 0.5;
     pos.y = Math.max(pos.y, this.data.heightAt(cu, cv) + 0.08);
     this.camera.position.copy(pos);
     this.camera.lookAt(look);
+    const fov = 45 + this.speed * 9 * (this.reduced ? 0 : 1);
+    if (Math.abs(fov - this.camera.fov) > 0.01) {
+      this.camera.fov = fov;
+      this.camera.updateProjectionMatrix();
+    }
 
     // Luz y clima
     const L = lightAt(p);
@@ -431,6 +506,14 @@ export class Journey {
     tu.uSky.value.copy(L.sky);
     tu.uGround.value.copy(L.ground);
     tu.uSnow.value = L.snow;
+    const dissolve = range(p, 0.962, 0.995);
+    tu.uDissolve.value = dissolve;
+    const bu = this.baseMat.uniforms;
+    bu.uSunDir.value.copy(L.sun);
+    bu.uSunColor.value.copy(L.sunC);
+    bu.uSky.value.copy(L.sky);
+    bu.uGround.value.copy(L.ground);
+    bu.uDissolve.value = dissolve;
     const fog = this.scene.fog as THREE.Fog;
     // La bruma toma el color del horizonte para que no haya costura entre tierra y cielo.
     fog.color.copy(L.fog).lerp(L.horizon, 0.85);
@@ -446,39 +529,43 @@ export class Journey {
 
     // Nubes: se cruzan en el descenso y luego se apartan
     const cloudOp = 1 - range(p, 0.2, 0.3);
+    const cloudsOn = cloudOp > 0.01;
     for (const s of this.clouds) {
-      s.position.x += 0.0008;
-      (s.material as THREE.SpriteMaterial).opacity = 0.75 * cloudOp;
-      (s.material as THREE.SpriteMaterial).color.copy(L.horizon).lerp(new THREE.Color('#ffffff'), 0.55);
-      s.visible = cloudOp > 0.01;
+      s.visible = cloudsOn;
+      if (!cloudsOn) continue;
+      s.position.x += 0.05 * dt;
+      const m = s.material as THREE.SpriteMaterial;
+      m.opacity = 0.75 * cloudOp;
+      m.color.copy(L.horizon).lerp(this.white, 0.55);
     }
 
     // Fotos 3D
-    const segs = [0.30, 0.36, 0.47, 0.54, 0.61];
-    this.panels.forEach((pnl, i) => {
+    const segs = this.segs;
+    for (let i = 0; i < this.panels.length; i++) {
+      const pnl = this.panels[i];
       const last = pnl.name === 'atardecer';
       const a = last ? 0.9 : segs[i], b = last ? 2 : segs[i + 1];
       const m = pnl.mesh.material.uniforms;
       const appear = range(p, a - 0.05, a);
-      const pass = last ? 0 : range(p, a + (b - a) * 0.75, b);
+      const pass = last ? range(p, 0.955, 0.972) : range(p, a + (b - a) * 0.75, b);
       if (last) {
         m.uNight.value = Math.min(1, 0.8 * TUNE.night);
-        m.uGlow.value = 1 * TUNE.glow;
+        m.uGlow.value = TUNE.glow;
       }
       pnl.mesh.visible = pnl.loaded && appear > 0 && pass < 1;
+      if (!pnl.mesh.visible) continue;
       m.uOpacity.value = ease(appear);
       m.uDepth.value = 0.22 * TUNE.move;
       m.uPass.value = pass;
       m.uTime.value = time;
       if (pnl.name === 'fachada') {
         // Foco sobre Maelo, Braña y Teleno por turnos
-        const k = range(p, a + 0.01, a + (b - a) * 0.7) * 3;
-        const unit = (['maelo', 'brana', 'teleno'] as const)[Math.min(2, Math.floor(k))];
-        const [x0, y0, x1, y1] = UNITS[unit];
+        const kk = range(p, a + 0.01, a + (b - a) * 0.7) * 3;
+        const [x0, y0, x1, y1] = UNITS[this.unitIds[Math.min(2, Math.floor(kk))]];
         (m.uHi.value as THREE.Vector4).set(x0, 1 - y1, x1, 1 - y0);
         m.uHiOn.value = Math.min(range(p, a + 0.008, a + 0.02), 1 - range(p, a + (b - a) * 0.68, a + (b - a) * 0.75));
       }
-    });
+    }
 
     // Ruta que se dibuja sola
     const tr = range(p, 0.635, 0.755);
@@ -488,19 +575,28 @@ export class Journey {
     this.trailHead.visible = tr > 0 && tr < 1 && this.trail.visible;
     if (this.trailHead.visible) this.trailHead.position.copy(this.trailPts[Math.min(this.trailPts.length - 1, Math.floor(tr * (this.trailPts.length - 1)))]);
 
-    // Nieve cayendo y la casa encendida
+    // Nieve cayendo, la casa encendida y el valle hecho de luz al final
     const sm = this.snow.material.uniforms;
     sm.uTime.value = time;
     sm.uCam.value.copy(pos);
     sm.uOpacity.value = Math.min(1, L.fall * TUNE.snow);
     this.snow.visible = L.fall > 0.01;
     this.beam.material.opacity = L.night * 0.7 * (1 - range(p, 0.9, 0.95));
+    const dustA = range(p, 0.958, 0.99);
+    this.dust.visible = dustA > 0;
+    this.dust.material.uniforms.uAlpha.value = dustA;
+    this.dust.material.uniforms.uTime.value = time;
 
-    this.renderer.render(this.scene, this.camera);
+    if (this.post) this.post.render(time, this.reduced ? 0 : this.speed);
+    else this.renderer.render(this.scene, this.camera);
 
-    if (this.onHud) {
+    const alt = pos.y / EXAG;
+    this.onMix?.({ alt, day: 1 - L.night, night: L.night, snow: L.fall, speed: this.speed });
+    // El HUD se actualiza unas 10 veces por segundo, no en cada fotograma.
+    if (this.onHud && time - this.hudT > 0.1) {
+      this.hudT = time;
       const [lat, lon] = this.data.lonLat(cu, cv);
-      this.onHud({ lat, lon, alt: (pos.y / EXAG) * 1000, p });
+      this.onHud({ lat, lon, alt: alt * 1000, p });
     }
   }
 }

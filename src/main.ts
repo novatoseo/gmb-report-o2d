@@ -17,6 +17,7 @@ import { initGallery, initReviews } from './sections/gallery';
 import { initBooking } from './sections/booking';
 import { initTuningPanel } from './live/tuning';
 import { CONCEPT, initConcept } from './concept';
+import { initCursor } from './cursor';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -37,6 +38,7 @@ initNav();
 renderContact();
 initTuningPanel();
 initConcept();
+initCursor(reduced);
 
 addEventListener('load', () => ScrollTrigger.refresh());
 document.fonts?.ready.then(() => ScrollTrigger.refresh());

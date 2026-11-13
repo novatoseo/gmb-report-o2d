@@ -28,13 +28,18 @@ void main() {
 export const TERRAIN_FRAG = /* glsl */ `
 uniform sampler2D uMap;
 uniform vec3 uSunDir, uSunColor, uSky, uGround;
-uniform float uSnow, uTime;
+uniform float uSnow, uTime, uDissolve;
 varying vec2 vUv;
 varying vec3 vWorld;
 varying vec3 vNormal;
 #include <fog_pars_fragment>
 ${NOISE}
 void main() {
+  // Final: el relieve se deshace desde la casa hacia fuera, con un borde de luz.
+  float dn = fbm(vWorld.xz * 1.4) * 0.6 + smoothstep(0.0, 22.0, length(vWorld.xz)) * 0.4;
+  float cut = uDissolve * 1.15;
+  if (dn < cut) discard;
+  float edge = smoothstep(cut + 0.04, cut, dn) * step(0.001, uDissolve);
   vec3 base = texture2D(uMap, vUv).rgb;
   vec3 n = normalize(vNormal);
   float diff = max(dot(n, normalize(uSunDir)), 0.0);
@@ -45,6 +50,7 @@ void main() {
   s = max(s, smoothstep(0.85, 1.0, uSnow) * smoothstep(0.55, 0.9, n.y) * 0.85);
   base = mix(base, vec3(0.92, 0.94, 0.97), s * clamp(uSnow * 1.5, 0.0, 1.0));
   vec3 c = base * (amb * 0.75 + uSunColor * diff * 1.15);
+  c += vec3(1.0, 0.75, 0.4) * edge * 3.0;
   gl_FragColor = vec4(c, 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
@@ -171,4 +177,34 @@ void main() {
   float a = smoothstep(0.5, 0.1, d) * vA * uOpacity;
   if (a < 0.01) discard;
   gl_FragColor = vec4(vec3(1.0), a);
+}`;
+
+// El valle hecho de luz: un punto por cada trozo de relieve, más cálido abajo y frío en las cumbres.
+export const DUST_VERT = /* glsl */ `
+uniform float uTime, uSize, uAlpha, uLow, uHigh;
+uniform vec3 uHome;
+attribute float aSeed;
+varying float vH;
+varying float vA;
+void main() {
+  vec3 p = position;
+  float rise = (1.0 - uAlpha) * 0.0 + sin(uTime * 0.6 + aSeed * 40.0) * 0.012;
+  p.y += rise + uAlpha * aSeed * 0.05;
+  vec4 mv = viewMatrix * vec4(p, 1.0);
+  gl_Position = projectionMatrix * mv;
+  float near = smoothstep(9.0, 0.0, distance(p.xz, uHome.xz));
+  gl_PointSize = uSize * (0.5 + aSeed * 0.8 + near * 0.8) / -mv.z;
+  vH = clamp((p.y - uLow) / (uHigh - uLow), 0.0, 1.0);
+  vA = uAlpha * (0.55 + 0.45 * sin(uTime * 1.7 + aSeed * 60.0)) * (0.35 + near);
+}`;
+
+export const DUST_FRAG = /* glsl */ `
+varying float vH;
+varying float vA;
+void main() {
+  float d = length(gl_PointCoord - 0.5);
+  float a = smoothstep(0.5, 0.0, d) * vA;
+  if (a < 0.01) discard;
+  vec3 warm = vec3(1.0, 0.78, 0.45), cold = vec3(0.6, 0.78, 1.0);
+  gl_FragColor = vec4(mix(warm, cold, smoothstep(0.15, 0.7, vH)) * a, a);
 }`;
